@@ -1,0 +1,147 @@
+---
+title: 理解 MCP 客户端 · 费曼解读
+sidebarTitle: 客户端（解读）
+description: 讲清宿主和客户端的区别，以及征询（elicitation）如何用多轮往返在无状态下向用户要信息。
+type: docs
+---
+
+<Info>
+  本页是社区编写的**非官方**解读，用费曼学习法重讲[《理解 MCP 客户端》](/zh/docs/2026-07-28/learn/client-concepts)（译文），对应英文原文是 [Understanding MCP clients](https://modelcontextprotocol.io/docs/2026-07-28/learn/client-concepts)。解读和配图是二次创作，用词以通俗为先，严谨定义请以原文和[规范](https://modelcontextprotocol.io/specification/2026-07-28/client/elicitation)为准。建议先读[架构](/zh/docs/2026-07-28/learn/architecture-explained)和[服务器](/zh/docs/2026-07-28/learn/server-concepts-explained)两篇解读。
+</Info>
+
+## 一句话版
+
+**客户端是宿主里负责和某一个服务器通信的零件。它不只“用”服务器给的东西，还能反过来帮服务器向用户要信息，这叫征询（elicitation）。**
+
+这一页其实就讲两件事：宿主和客户端有什么区别；征询怎么用。
+
+## 宿主 ≠ 客户端
+
+很多人把这两个词混着用，原文特意强调要分清：
+
+- **宿主（Host）**：用户真正在用的那个应用，比如 Claude.ai、某个 IDE。它负责整体体验：对话框、审批弹窗、表单……还要协调多个客户端。
+- **客户端（Client）**：宿主为每个服务器创建的**协议层零件**。一个客户端只负责和一个服务器的一条直连。
+
+打个比方：宿主是**旅行社门店**，客户端是门店里分别对接航空公司、酒店的**专员**。顾客只跟门店打交道，看不到也不需要知道背后有几个专员。
+
+<a href="/zh/images/client-concepts/host-client.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/client-concepts/host-client.light.svg" alt="宿主包含界面、模型和多个客户端，每个客户端连一个服务器；服务器可以反过来通过征询向用户要信息" /></a>
+<a href="/zh/images/client-concepts/host-client.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/client-concepts/host-client.svg" alt="宿主包含界面、模型和多个客户端，每个客户端连一个服务器；服务器可以反过来通过征询向用户要信息" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+前两篇讲的都是服务器给客户端提供东西（工具、资源、提示词模板）。这一篇讲的是**反方向**：客户端给服务器提供能力。在 2026-07-28 版里，这样的能力只剩**征询**一项，另外两项（roots 和 sampling）已经弃用。
+
+## 征询：服务器反过来问用户
+
+### 为什么需要它
+
+没有征询的话，服务器只有两条路：要么一开始就要求把所有信息填全，要么缺信息就直接报错。
+
+有了征询，服务器可以**做到一半停下来，问用户要缺的那一点**。原文的例子：订机票酒店时，服务器在最后确认前问一句“靠窗还是靠过道？要海景房吗？买不买保险？”。这样流程更灵活：服务器去适应用户，而不是让用户适应死板的流程。
+
+### 怎么做到：多轮往返
+
+这是这一页最核心的机制。还记得 2026-07-28 版是**无状态**的吗？服务器不能主动给客户端发请求，也不记得“刚才谁在等我”。那它怎么问用户？
+
+答案是：**先回一句“还缺东西”，让客户端问完再来一次。**
+
+<a href="/zh/images/client-concepts/mrtr.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/client-concepts/mrtr.light.svg" alt="征询的多轮往返时序：第一次调用返回 input_required，用户填写表单，客户端带着 inputResponses 和 requestState 重发，第二次返回 complete；下方对照两代协议" /></a>
+<a href="/zh/images/client-concepts/mrtr.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/client-concepts/mrtr.svg" alt="征询的多轮往返时序：第一次调用返回 input_required，用户填写表单，客户端带着 inputResponses 和 requestState 重发，第二次返回 complete；下方对照两代协议" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+以原文的订假期为例：
+
+1. 客户端调用 `bookVacation`（`id: 1`），参数是去程航班、回程航班和酒店。
+2. 服务器发现需要用户确认，**先不订**，马上返回：
+   - `resultType: "input_required"`：还缺东西；
+   - `inputRequests.bookingConfirmation`：里面是一个 `elicitation/create`，说明要问什么（确认、座位、房型、保险）；
+   - `requestState`：一段服务器给的不透明字符串，相当于**回执**。
+3. 宿主把问题做成表单给用户。用户勾选确认、靠窗、海景房、不买保险。
+4. 客户端**用新的 `id: 2` 再发一次同样的调用**，名字和参数都不变，多带两样东西：
+   - `inputResponses.bookingConfirmation`：用户的回答，**键名和服务器提问时的一样**；
+   - `requestState`：**原样奉还**那张回执。
+5. 服务器这次拿到了需要的一切，完成预订，返回 `resultType: "complete"`。
+
+打个比方：**银行柜员**说“还缺一张表”，递给你一张表和一张回执；你在旁边填好，带着表和回执重新排队办理。柜员不需要记住你是谁，回执上已经写清楚了。
+
+关键在于：**两次调用是两个完全独立的请求**，中间没有任何连接或会话在等，所以服务器可以是无状态的。
+
+<Tip>
+  这一点我们在 MCP Inspector 里实测过。用默认的 2025 年那一代协议，`tools/call` 会一直挂着等用户（实测用户 20 秒后拒绝，这次调用耗时 20.86 秒），服务器还会单独发一条 `elicitation/create` 请求。用 `--protocol-era modern` 切到 2026-07-28 后，第一次 `tools/call` **14 毫秒就返回了 `input_required`**，用户回答后客户端带着 `inputResponses` 重发。动手方法见 [MCP Inspector 实战](https://flinshu.github.io/mcp-explained/inspector.html)。
+</Tip>
+
+### 两种模式：表单和链接
+
+<a href="/zh/images/client-concepts/modes.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/client-concepts/modes.light.svg" alt="表单模式与链接模式的对比、accept/decline/cancel 三种回应，以及弃用的 roots 和 sampling" /></a>
+<a href="/zh/images/client-concepts/modes.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/client-concepts/modes.svg" alt="表单模式与链接模式的对比、accept/decline/cancel 三种回应，以及弃用的 roots 和 sampling" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+| | 表单模式 `form` | 链接模式 `url` |
+|---|---|---|
+| 怎么问 | 服务器给一份 schema，客户端照着生成表单，并按 schema 校验 | 服务器给一个网址，用户自己去那里完成 |
+| 数据怎么走 | 用户 → 客户端 → 服务器 | 用户 ↔ 目标网站，**不经过客户端，也不进模型的上下文** |
+| 适合 | 确认、选项、补充偏好 | 输入凭证、第三方 OAuth 授权等敏感流程 |
+
+比喻：普通信息让服务员当场记在点菜单上（表单）；**银行卡密码**请你自己去收银台的刷卡机上输，服务员看不到（链接）。
+
+**隐私红线**：服务器**不得**用表单索要密码、API key、访问令牌、支付凭证。这些必须走链接模式，让敏感数据完全不经过客户端和模型。
+
+链接模式下客户端也有规矩：**显示完整网址、先征得用户同意再打开、绝不自动访问**。而且客户端只知道用户同不同意，至于用户在那个网站上做了什么，客户端并不知道。
+
+**谁支持哪种，客户端说了算**：客户端在每个请求的能力里声明，服务器只能用声明过的模式：
+
+- `"elicitation": {}`：空对象，表示只支持表单；
+- `"elicitation": {"form": {}, "url": {}}`：两种都支持。
+
+### 用户的三种回应
+
+| 回应 | 意思 |
+|---|---|
+| `accept` 接受 | 填好并提交，附带内容。客户端会先按 schema 校验再发出 |
+| `decline` 拒绝 | 明确表示“不给” |
+| `cancel` 取消 | 没做选择，直接关掉 |
+
+`decline` 和 `cancel` 的区别在于：前者是“我想好了，不给”，后者是“我没表态”。
+
+另外，客户端展示征询时要说清楚**是哪个服务器在问、为什么要、会怎么用**；遇到可疑的请求要提醒用户，并让用户在发送前检查表单内容。
+
+## 已弃用的两项客户端能力
+
+2026-07-28 版把客户端的另外两项能力标为弃用，计划移除：
+
+- **根目录（roots）**：以前客户端告诉服务器“你能访问哪些目录”。现在改为通过工具参数、资源 URI 或服务器配置来传目录和文件。
+- **采样（sampling）**：以前服务器可以“借用”客户端的大模型来生成内容。现在服务器应该直接对接大模型厂商的 API，协议不再提供替代。
+
+这也是为什么在 2026-07-28 版里，“客户端提供的能力”只剩征询一项。
+
+## 费曼自测
+
+能用自己的话答出来，才算真懂。先想一想，再展开看参考答案。
+
+<AccordionGroup>
+  <Accordion title="1. 宿主和客户端有什么区别？">
+    宿主是用户真正在用的应用，负责整体体验并协调多个客户端；客户端是宿主为每个服务器创建的协议层零件，一个客户端只负责和一个服务器的一条直连。
+  </Accordion>
+  <Accordion title="2. 服务器不能主动给客户端发请求，那它怎么向用户要信息？">
+    在结果里返回 `resultType: "input_required"`，把要问的问题放进 `inputRequests`。客户端问完用户后，带着 `inputResponses` 重新发送原请求。这就是多轮往返（MRTR）。
+  </Accordion>
+  <Accordion title="3. requestState 是干什么的？客户端能改它吗？">
+    它是服务器给的一段不透明字符串，相当于回执，用来让无状态的服务器在第二次请求时接上上下文。客户端必须原样带回，不能修改，也不需要理解它的内容。
+  </Accordion>
+  <Accordion title="4. 重试时为什么要用新的 id，而 inputResponses 的键名要和提问时一样？">
+    重试是一个全新的请求，所以用新的 `id`。`inputResponses` 的键名（例子里是 `bookingConfirmation`）和服务器在 `inputRequests` 里用的键名一致，服务器才能把每个回答对上对应的问题。
+  </Accordion>
+  <Accordion title="5. 想让用户输入 GitHub 令牌，该用表单还是链接？为什么？">
+    用链接模式。规范禁止用表单索要密码、API key、访问令牌、支付凭证；链接模式下数据只在用户和目标网站之间流动，不经过客户端，也不进入模型的上下文。
+  </Accordion>
+  <Accordion title='6. "elicitation": {} 表示什么？'>
+    空对象表示客户端只支持表单模式。要同时支持链接模式，得写成 `{"form": {}, "url": {}}`。服务器只能使用客户端声明过的模式。
+  </Accordion>
+  <Accordion title="7. decline 和 cancel 有什么区别？">
+    `decline` 是用户明确拒绝提供；`cancel` 是用户没有做出选择就关掉了请求，没有明确表态。
+  </Accordion>
+</AccordionGroup>
+
+## 动手看一看
+
+- [MCP Inspector 实战](https://flinshu.github.io/mcp-explained/inspector.html)：调用示例服务器的 `trigger-elicitation-request` 工具，会弹出一张字段类型很全的征询表单。启动时加上 `--protocol-era modern`，就能在 Protocol 侧栏里看到本页讲的 `input_required` 和重发。
+- [MCP 图解](https://flinshu.github.io/mcp-explained/#elicitation)：“征询”一课用动画演示消息流，“攻防演示”里的“征询钓鱼”讲了表单被滥用的风险。

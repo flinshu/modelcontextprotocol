@@ -6,7 +6,9 @@
         "docs/2026-07-28/learn/architecture",
         { "original": "docs/2026-07-28/learn/architecture-explained" },
         "docs/2026-07-28/learn/server-concepts",
-        { "original": "docs/2026-07-28/learn/server-concepts-explained" }
+        { "original": "docs/2026-07-28/learn/server-concepts-explained" },
+        "docs/2026-07-28/learn/client-concepts",
+        { "original": "docs/2026-07-28/learn/client-concepts-explained" }
       ]
     }
   ]

@@ -1,0 +1,176 @@
+# 对照文件：docs/docs/2026-07-28/learn/client-concepts.mdx
+# 只改 "@@ zh" 下面的译文；英文部分由 extract 生成，不要手改。
+
+@@ f602a83ff6
+Understanding MCP clients
+@@ zh
+理解 MCP 客户端
+
+@@ 28e22fe3dd
+Clients
+@@ zh
+客户端
+
+@@ a4c12bab14
+MCP clients are instantiated by host applications to communicate with particular MCP servers. The host application, like Claude.ai or an IDE, manages the overall user experience and coordinates multiple clients. Each client handles one direct communication with one server.
+@@ zh
+MCP 客户端由宿主应用创建，用来与特定的 MCP 服务器通信。宿主应用（比如 Claude.ai 或某个 IDE）负责整体的用户体验，并协调多个客户端。每个客户端只负责与一个服务器的直接通信。
+
+@@ aef8435f61
+Understanding the distinction is important: the _host_ is the application users interact with, while _clients_ are the protocol-level components that enable server connections.
+@@ zh
+分清这两者很重要：*宿主*是用户直接使用的应用，而*客户端*是协议层面的组件，负责建立与服务器的连接。
+
+@@ 0f02397d00
+## Core Client Features
+@@ zh
+## 客户端核心功能
+
+@@ 06b5448428
+In addition to making use of context provided by servers, clients can provide features to servers, such as [elicitation](/specification/2026-07-28/client/elicitation). These allow server authors to build richer interactions.
+@@ zh
+客户端除了使用服务器提供的上下文，也可以向服务器提供功能，比如[征询](/specification/2026-07-28/client/elicitation)。借助这些功能，服务器开发者可以构建更丰富的交互。
+
+@@ 6438ccb37d
+### Elicitation
+@@ zh
+### 征询
+
+@@ 18e917305c
+Elicitation enables servers to request specific information from users during interactions, creating more dynamic and responsive workflows. For example, a server booking travel may ask for the user's preferences on airplane seats, room type or their contact number to finalize a booking.
+@@ zh
+征询让服务器可以在交互过程中向用户索取特定信息，使工作流更灵活、响应更及时。例如，一个预订旅行的服务器在最终确认预订前，可能会询问用户偏好的机上座位、房型，或者联系电话。
+
+@@ a97589d1f7
+#### Overview
+@@ zh
+#### 概述
+
+@@ 7a94a37bc1
+Elicitation provides a structured way for servers to gather necessary information on demand. Instead of requiring all information up front or failing when data is missing, servers can pause their operations to request specific inputs from users. This creates more flexible interactions where servers adapt to user needs rather than following rigid patterns.
+@@ zh
+征询为服务器提供了一种按需收集必要信息的结构化方式。服务器不必一开始就要求提供全部信息，也不必在缺少数据时直接失败，而是可以暂停当前操作，向用户索取特定输入。这样的交互更灵活：服务器会根据用户的需要调整，而不是按死板的固定模式走。
+
+@@ 838c91275e
+Elicitation supports two modes:
+@@ zh
+征询支持两种模式：
+
+@@ 06fd168d01
+- **Form mode**: The server asks the client to collect structured data from the user. The request includes a schema that the client uses to build an input form and validate the response.
+- **URL mode**: The server provides a URL for the user to open. The interaction happens out of band and its data never passes through the client, which makes this mode suitable for sensitive flows such as credential entry or third-party OAuth authorization.
+@@ zh
+- **表单模式**：服务器请客户端向用户收集结构化数据。请求中带有一个 schema，客户端据此生成输入表单，并校验用户的回答。
+- **URL 模式**：服务器提供一个 URL 让用户打开。交互在带外进行，数据从不经过客户端，因此这种模式适合输入凭据、第三方 OAuth 授权这类敏感流程。
+
+@@ 539e7597c5
+Elicitation follows the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) (MRTR) pattern. When a server needs user input while processing a request such as `tools/call`, it responds with an `InputRequiredResult` whose `inputRequests` field carries one or more `elicitation/create` requests. The client gathers the input and retries the original request, attaching the collected `inputResponses` and echoing back any `requestState` the server included.
+@@ zh
+征询遵循[多轮往返请求](/specification/2026-07-28/basic/patterns/mrtr)（MRTR）模式。服务器在处理 `tools/call` 这类请求时如果需要用户输入，就返回一个 `InputRequiredResult`，其 `inputRequests` 字段里带着一个或多个 `elicitation/create` 请求。客户端收集好输入后重试原请求，附上收集到的 `inputResponses`，并把服务器给出的 `requestState`（如果有）原样带回。
+
+@@ b56e386509
+Clients declare the modes they support in the `elicitation` capability of each request, and servers must not use any other mode. An empty object (`{}`) declares form mode only, while `{ "form": {}, "url": {} }` declares both.
+@@ zh
+客户端在每个请求的 `elicitation` 能力里声明自己支持哪些模式，服务器不得使用声明之外的模式。空对象（`{}`）表示只支持表单模式，`{ "form": {}, "url": {} }` 则表示两种都支持。
+
+@@ c723c90fff
+**Elicitation flow:**
+@@ zh
+**征询流程**：
+
+@@ 025dc62189
+The flow enables dynamic information gathering. Servers can request specific data when needed, users provide information through appropriate UI, and servers complete the retried request with the newly acquired context.
+@@ zh
+这个流程实现了动态的信息收集：服务器在需要时索取特定数据，用户通过合适的界面提供信息，服务器再用新拿到的上下文完成重试的请求。
+
+@@ 42204c4106
+**Elicitation example:**
+@@ zh
+**征询示例**：
+
+@@ 006eca54c3
+The following messages continue building on the [travel planning scenario](/docs/2026-07-28/learn/server-concepts#the-complete-flow). The client calls the `bookVacation` tool:
+@@ zh
+下面的消息接着[旅行规划场景](/docs/2026-07-28/learn/server-concepts#the-complete-flow)往下讲。客户端调用 `bookVacation` 工具：
+
+@@ 9f0be4a8b0
+The server needs the user to confirm the booking, so it responds with an `InputRequiredResult`. Its `resultType` of `"input_required"` indicates that the client must provide additional input before the server can complete the request:
+@@ zh
+服务器需要用户确认这次预订，所以返回一个 `InputRequiredResult`。其中 `resultType` 为 `"input_required"`，表示客户端必须先提供额外输入，服务器才能完成请求：
+
+@@ b7cd913256
+After the user fills in the form, the client retries the call with a new `id`. The retry carries the user's answers in `inputResponses`, under the same `bookingConfirmation` key as the server's request, and the exact `requestState` value from the result:
+@@ zh
+用户填完表单后，客户端用一个新的 `id` 重试调用。重试请求把用户的回答放在 `inputResponses` 里，键名与服务器请求中的一样，都是 `bookingConfirmation`，同时原样带上结果里的 `requestState` 值：
+
+@@ 08d1aa4017
+The server completes the booking and returns a `CallToolResult`. Its `resultType` of `"complete"` indicates that the request completed successfully:
+@@ zh
+服务器完成预订，返回一个 `CallToolResult`。其中 `resultType` 为 `"complete"`，表示请求已成功完成：
+
+@@ 2cd0642ca8
+#### Example: Holiday Booking Approval
+@@ zh
+#### 示例：度假预订确认
+
+@@ f244cee080
+A travel booking server demonstrates elicitation's power through the final booking confirmation process. When a user has selected their ideal vacation package to Barcelona, the server needs to gather final approval and any missing details before proceeding.
+@@ zh
+旅行预订服务器的最终确认环节，很能体现征询的作用。用户选好了理想的巴塞罗那度假套餐后，服务器在继续之前，需要拿到用户的最终确认，并补齐缺少的信息。
+
+@@ f6cff40748
+The server elicits booking confirmation with a structured request that includes the trip summary (Barcelona flights June 15-22, beachfront hotel, total $3,000) and fields for any additional preferences—such as seat selection, room type, or travel insurance options.
+@@ zh
+服务器发出一个结构化的征询请求来确认预订，里面有行程摘要（6 月 15 日至 22 日往返巴塞罗那的航班、海滨酒店、共计 3,000 美元），以及填写其他偏好的字段，比如选座、房型或旅行保险选项。
+
+@@ 357433f013
+As the booking progresses, the server elicits contact information needed to complete the reservation. It might ask for traveler details for flight bookings, special requests for the hotel, or emergency contact information.
+@@ zh
+随着预订推进，服务器还会征询完成预订所需的联系信息，比如订机票需要的旅客信息、对酒店的特殊要求，或者紧急联系人信息。
+
+@@ a7e11b7743
+#### User Interaction Model
+@@ zh
+#### 用户交互模型
+
+@@ 85fb1c7732
+Elicitation interactions are designed to be clear, contextual, and respectful of user autonomy:
+@@ zh
+征询交互的设计目标是清晰、有上下文，并尊重用户的自主权：
+
+@@ 3db09534de
+**Request presentation**: Clients display elicitation requests with clear context about which server is asking, why the information is needed, and how it will be used. The request message explains the purpose while the schema provides structure and validation.
+@@ zh
+**请求的展示**：客户端展示征询请求时，要清楚交代是哪个服务器在问、为什么需要这些信息、会怎么使用。请求消息说明用途，schema 则提供结构和校验。
+
+@@ 1b21dd6e64
+**Response options**: Users can provide the requested information through appropriate UI controls (text fields, dropdowns, checkboxes), explicitly decline to provide it, or dismiss the request without making a choice. These map to the `accept`, `decline`, and `cancel` actions. Clients validate responses against the provided schema before returning them to servers.
+@@ zh
+**回应方式**：用户可以通过合适的界面控件（文本框、下拉框、复选框）提供所需信息，也可以明确拒绝提供，或者不做选择直接关掉请求。这三种分别对应 `accept`、`decline` 和 `cancel` 动作。客户端在把回答交给服务器之前，会按提供的 schema 校验。
+
+@@ c249c1cc9c
+**URL handling**: For URL mode, clients show the full URL and gather explicit consent before opening it, and never fetch the URL automatically. The client only learns whether the user consented. The interaction itself stays between the user and the target site.
+@@ zh
+**URL 的处理**：在 URL 模式下，客户端会显示完整的 URL，取得用户明确同意后才打开，绝不自动访问该 URL。客户端只知道用户是否同意，交互本身只发生在用户和目标网站之间。
+
+@@ 5a4d3d3dc5
+**Privacy considerations**: Servers must not use form mode to request sensitive information such as passwords, API keys, access tokens, or payment credentials. Those interactions belong in URL mode, which keeps the data out of band so it never passes through the client or the LLM context. Clients warn about suspicious requests and let users review form data before sending.
+@@ zh
+**隐私考虑**：服务器不得用表单模式索取密码、API 密钥、访问令牌或支付凭据这类敏感信息。这些交互应该走 URL 模式，让数据在带外传递，从不经过客户端或 LLM 上下文。客户端会对可疑请求发出警告，并让用户在发送前检查表单数据。
+
+@@ cac5b07e44
+## Deprecated Features
+@@ zh
+## 已弃用的功能
+
+@@ bdfd640cb1
+Roots and sampling are [deprecated](/specification/2026-07-28/deprecated) as of protocol version `2026-07-28` and scheduled for removal. New implementations should use the following alternatives:
+@@ zh
+从协议版本 `2026-07-28` 起，根目录和采样已[弃用](/specification/2026-07-28/deprecated)，并计划移除。新的实现应改用以下替代方案：
+
+@@ 4deac17e6b
+- **Roots**: Pass directories or files through tool parameters, resource URIs, or server configuration.
+- **Sampling**: Integrate directly with LLM provider APIs. The protocol does not define a replacement for requesting completions through the client.
+@@ zh
+- **根目录**：通过工具参数、资源 URI 或服务器配置传递目录或文件。
+- **采样**：直接对接 LLM 提供商的 API。对于通过客户端请求模型补全这件事，协议没有定义替代机制。

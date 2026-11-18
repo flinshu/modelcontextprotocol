@@ -135,9 +135,9 @@ MCP 还定义了可由*客户端*暴露的原语，让 MCP 服务器的作者能
 
 - **征询（Elicitation）**：允许服务器向用户请求更多信息。当服务器作者需要从用户那里获取更多信息，或需要用户确认某个操作时，这一原语很有用。服务器通过 `elicitation/create` 方法请求用户输入。
 
-征询请求通过[多轮往返请求](/specification/2026-07-28/basic/patterns/mrtr)模式传递，详见[征询概述](/docs/2026-07-28/learn/client-concepts#elicitation)。
+征询请求通过[多轮往返请求](/specification/2026-07-28/basic/patterns/mrtr)模式传递，详见[征询概述](/zh/docs/2026-07-28/learn/client-concepts#elicitation)。
 
-关于客户端原语的更多细节，请参阅[客户端概念](/docs/2026-07-28/learn/client-concepts)。
+关于客户端原语的更多细节，请参阅[客户端概念](/zh/docs/2026-07-28/learn/client-concepts)。
 
 自协议版本 `2026-07-28` 起，客户端功能中的根目录（roots）和采样（sampling），以及服务器功能中的协议日志，均已[弃用](/specification/2026-07-28/deprecated)。新的实现应改用以下替代方案：
 

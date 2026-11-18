@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 540">
+  <style>
+    :root {
+    --bg: #f8fafc;
+    --bg-grid: #e2e8f0;
+    --mask: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --arrow: #64748b;
+    --color-primary-fill: rgba(6,182,212,0.12);
+    --color-primary-stroke: #0891b2;
+    --color-secondary-fill: rgba(5,150,105,0.12);
+    --color-secondary-stroke: #059669;
+    --color-tertiary-fill: rgba(124,58,237,0.12);
+    --color-tertiary-stroke: #7c3aed;
+    --color-accent-fill: rgba(217,119,6,0.12);
+    --color-accent-stroke: #d97706;
+    --color-alert-fill: rgba(225,29,72,0.12);
+    --color-alert-stroke: #e11d48;
+    --color-connector-fill: rgba(234,88,12,0.12);
+    --color-connector-stroke: #ea580c;
+    --color-neutral-fill: rgba(100,116,139,0.12);
+    --color-neutral-stroke: #64748b;
+    --color-highlight-fill: rgba(59,130,246,0.12);
+    --color-highlight-stroke: #3b82f6;
+}
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .h { fill: var(--text); font-size: 14px; font-weight: 700; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+    .c { fill: var(--text); font-size: 11px; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--arrow)"/></marker>
+    <marker id="a-ac" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent-stroke)"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">宿主 ≠ 客户端：用户看到的是宿主，客户端是里面的零件</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">比喻：宿主是一家旅行社的门店，客户端是门店里分别对接航空公司、酒店的专员；顾客只和门店打交道</text>
+
+  <!-- user -->
+  <rect x="30" y="215" width="130" height="90" rx="10" fill="var(--mask)"/>
+  <rect x="30" y="215" width="130" height="90" rx="10" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)" stroke-width="1.5"/>
+  <text x="95" y="252" class="h" text-anchor="middle">用户</text>
+  <text x="95" y="274" class="d" text-anchor="middle">只看到宿主的界面</text>
+
+  <!-- host -->
+  <rect x="210" y="90" width="430" height="350" rx="12" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="228" y="114" fill="var(--color-highlight-stroke)" font-size="14" font-weight="700">宿主 Host（应用）</text>
+  <text x="228" y="134" class="d">如 Claude.ai、IDE · 管整体体验，协调多个客户端</text>
+
+  <rect x="228" y="150" width="150" height="270" rx="8" fill="var(--color-highlight-fill)" stroke="var(--color-highlight-stroke)"/>
+  <text x="303" y="178" class="h" text-anchor="middle">界面 + 模型</text>
+  <text x="303" y="202" class="d" text-anchor="middle">对话框</text>
+  <text x="303" y="220" class="d" text-anchor="middle">审批弹窗</text>
+  <text x="303" y="238" class="d" text-anchor="middle">征询表单</text>
+  <text x="303" y="256" class="d" text-anchor="middle">资源选择器</text>
+  <text x="303" y="400" class="d" text-anchor="middle">用户能看见的部分</text>
+
+  <rect x="410" y="160" width="210" height="70" rx="8" fill="var(--mask)"/>
+  <rect x="410" y="160" width="210" height="70" rx="8" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="515" y="188" class="h" text-anchor="middle">客户端 A</text>
+  <text x="515" y="210" class="d" text-anchor="middle">协议层零件 · 只连旅行服务器</text>
+  <rect x="410" y="250" width="210" height="70" rx="8" fill="var(--mask)"/>
+  <rect x="410" y="250" width="210" height="70" rx="8" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="515" y="278" class="h" text-anchor="middle">客户端 B</text>
+  <text x="515" y="300" class="d" text-anchor="middle">协议层零件 · 只连日历服务器</text>
+  <text x="515" y="350" class="d" text-anchor="middle">一个客户端 = 和一个服务器的一条直连</text>
+
+  <!-- servers -->
+  <rect x="760" y="160" width="290" height="70" rx="8" fill="var(--mask)"/>
+  <rect x="760" y="160" width="290" height="70" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="905" y="188" class="h" text-anchor="middle">旅行服务器</text>
+  <text x="905" y="210" class="d" text-anchor="middle">工具 · 资源 · 提示词模板</text>
+  <rect x="760" y="250" width="290" height="70" rx="8" fill="var(--mask)"/>
+  <rect x="760" y="250" width="290" height="70" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="905" y="278" class="h" text-anchor="middle">日历服务器</text>
+  <text x="905" y="300" class="d" text-anchor="middle">工具 · 资源</text>
+
+  <!-- arrows -->
+  <line x1="160" y1="260" x2="224" y2="260" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="620" y1="185" x2="756" y2="185" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="688" y="176" class="d" text-anchor="middle">用服务器的上下文</text>
+  <line x1="620" y1="285" x2="756" y2="285" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 760,214 C 700,214 690,236 624,236" fill="none" stroke="var(--color-accent-stroke)" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#a-ac)"/>
+  <text x="690" y="246" fill="var(--color-accent-stroke)" font-size="11" text-anchor="middle">反过来：征询</text>
+
+  <!-- capability -->
+  <rect x="660" y="360" width="390" height="80" rx="8" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)" stroke-width="1.2"/>
+  <text x="676" y="384" class="c">客户端在每个请求的能力里声明支持哪种征询：</text>
+  <text x="676" y="404" class="c">"elicitation": {}</text><text x="830" y="404" class="d">→ 只支持表单</text>
+  <text x="676" y="424" class="c">"elicitation": {"form": {}, "url": {}}</text><text x="968" y="424" class="d">→ 两种都支持</text>
+
+  <text x="30" y="482" fill="var(--text)" font-size="12" font-weight="600">要点</text>
+  <text x="80" y="482" fill="var(--text-muted)" font-size="12">客户端不只是“用”服务器给的东西，还能反过来给服务器提供能力：征询，让服务器在需要时向用户要信息。</text>
+  <text x="80" y="504" fill="var(--text-muted)" font-size="12">服务器只能用客户端声明过的征询模式。2026-07-28 起，客户端的另外两项能力 roots 和 sampling 已弃用。</text>
+</svg>

@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 820">
+  <style>
+    :root {
+    --bg: #f8fafc;
+    --bg-grid: #e2e8f0;
+    --mask: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --arrow: #64748b;
+    --color-primary-fill: rgba(6,182,212,0.12);
+    --color-primary-stroke: #0891b2;
+    --color-secondary-fill: rgba(5,150,105,0.12);
+    --color-secondary-stroke: #059669;
+    --color-tertiary-fill: rgba(124,58,237,0.12);
+    --color-tertiary-stroke: #7c3aed;
+    --color-accent-fill: rgba(217,119,6,0.12);
+    --color-accent-stroke: #d97706;
+    --color-alert-fill: rgba(225,29,72,0.12);
+    --color-alert-stroke: #e11d48;
+    --color-connector-fill: rgba(234,88,12,0.12);
+    --color-connector-stroke: #ea580c;
+    --color-neutral-fill: rgba(100,116,139,0.12);
+    --color-neutral-stroke: #64748b;
+    --color-highlight-fill: rgba(59,130,246,0.12);
+    --color-highlight-stroke: #3b82f6;
+}
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .req { stroke: var(--text-muted); stroke-width: 1.5; fill: none; }
+    .res { stroke: var(--arrow); stroke-width: 1.2; stroke-dasharray: 6,3; fill: none; }
+    .ui { stroke: var(--color-tertiary-stroke); stroke-width: 1.2; stroke-dasharray: 1,4; stroke-linecap: round; fill: none; }
+    .lbl { fill: var(--text); font-size: 11px; }
+    .lblm { fill: var(--text-muted); font-size: 11px; }
+    .lblu { fill: var(--color-tertiary-stroke); font-size: 11px; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+    .c { fill: var(--text); font-size: 11px; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a-req" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--text-muted)"/></marker>
+    <marker id="a-res" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--arrow)"/></marker>
+    <marker id="a-ui" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-tertiary-stroke)"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="38" fill="var(--text)" font-size="18" font-weight="700">征询怎么走：多轮往返（MRTR）· 订假期前的确认</text>
+  <text x="30" y="60" fill="var(--text-muted)" font-size="12">比喻：银行柜员说“还缺一张表”，递给你表和一张回执；你填好后带着表和回执重新办理，柜员不用记住你</text>
+
+  <!-- lifelines -->
+  <line x1="190" y1="125" x2="190" y2="560" stroke="var(--arrow)" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="520" y1="125" x2="520" y2="560" stroke="var(--arrow)" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="880" y1="125" x2="880" y2="560" stroke="var(--arrow)" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <rect x="110" y="78" width="160" height="47" rx="6" fill="var(--mask)"/>
+  <rect x="110" y="78" width="160" height="47" rx="6" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)" stroke-width="1.5"/>
+  <text x="190" y="107" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">用户</text>
+  <rect x="420" y="78" width="200" height="47" rx="6" fill="var(--mask)"/>
+  <rect x="420" y="78" width="200" height="47" rx="6" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="520" y="107" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">客户端（宿主里）</text>
+  <rect x="780" y="78" width="200" height="47" rx="6" fill="var(--mask)"/>
+  <rect x="780" y="78" width="200" height="47" rx="6" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="880" y="107" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">旅行服务器</text>
+
+  <!-- step 1 -->
+  <text x="40" y="168" fill="var(--color-highlight-stroke)" font-size="12" font-weight="700">①</text>
+  <line x1="524" y1="165" x2="874" y2="165" class="req" marker-end="url(#a-req)"/>
+  <text x="700" y="157" class="lbl" text-anchor="middle">tools/call bookVacation（id: 1）</text>
+
+  <!-- step 2 -->
+  <text x="40" y="208" fill="var(--color-highlight-stroke)" font-size="12" font-weight="700">②</text>
+  <rect x="900" y="146" width="160" height="40" rx="6" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="980" y="163" class="d" text-anchor="middle">需要用户确认，</text>
+  <text x="980" y="179" class="d" text-anchor="middle">先不订</text>
+  <line x1="876" y1="205" x2="526" y2="205" class="res" marker-end="url(#a-res)"/>
+  <text x="700" y="198" class="lblm" text-anchor="middle">resultType: "input_required"（马上返回，连接不挂着）</text>
+  <rect x="540" y="215" width="320" height="64" rx="6" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)"/>
+  <text x="552" y="235" class="c">inputRequests.bookingConfirmation</text>
+  <text x="552" y="252" class="d">= elicitation/create（表单：确认、座位、房型…）</text>
+  <text x="552" y="269" class="c">requestState: "…"</text><text x="690" y="269" class="d">← 回执，原样带回</text>
+
+  <!-- step 3 -->
+  <text x="40" y="318" fill="var(--color-highlight-stroke)" font-size="12" font-weight="700">③</text>
+  <line x1="516" y1="315" x2="196" y2="315" class="ui" marker-end="url(#a-ui)"/>
+  <text x="355" y="307" class="lblu" text-anchor="middle">弹出表单：请确认 6/15–22 巴塞罗那，$3000</text>
+  <line x1="194" y1="355" x2="514" y2="355" class="ui" marker-end="url(#a-ui)"/>
+  <text x="355" y="347" class="lblu" text-anchor="middle">接受：确认 ✓ · 靠窗 · 海景房 · 不买保险</text>
+
+  <!-- step 4 -->
+  <text x="40" y="398" fill="var(--color-highlight-stroke)" font-size="12" font-weight="700">④</text>
+  <line x1="524" y1="395" x2="874" y2="395" class="req" marker-end="url(#a-req)"/>
+  <text x="700" y="387" class="lbl" text-anchor="middle">再发一次 tools/call bookVacation（id: 2，新 id）</text>
+  <rect x="540" y="405" width="320" height="82" rx="6" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)"/>
+  <text x="552" y="425" class="c">同样的 name 和 arguments，再加上：</text>
+  <text x="552" y="442" class="c">inputResponses.bookingConfirmation:</text>
+  <text x="566" y="459" class="c">{action: "accept", content: {…}}</text>
+  <text x="552" y="476" class="c">requestState: "…"</text><text x="690" y="476" class="d">← 原样奉还</text>
+
+  <!-- step 5 -->
+  <text x="40" y="528" fill="var(--color-highlight-stroke)" font-size="12" font-weight="700">⑤</text>
+  <line x1="876" y1="525" x2="526" y2="525" class="res" marker-end="url(#a-res)"/>
+  <text x="700" y="517" class="lblm" text-anchor="middle">resultType: "complete" · 已订好 EX101/EX102 和海景房</text>
+
+  <!-- comparison -->
+  <rect x="30" y="580" width="1020" height="200" rx="10" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)" stroke-width="1"/>
+  <text x="48" y="606" fill="var(--text)" font-size="13" font-weight="700">对照：两代协议的征询（在 MCP Inspector 里实测 server-everything 得到）</text>
+  <text x="48" y="634" fill="var(--color-alert-stroke)" font-size="12" font-weight="600">2025 年那一代</text>
+  <text x="48" y="656" class="d">· 服务器单独发一条 elicitation/create 请求给客户端</text>
+  <text x="48" y="676" class="d">· 原来的 tools/call 一直挂着（PENDING），等用户</text>
+  <text x="48" y="696" class="d">· 实测：用户 20 秒后拒绝，这次调用总耗时 20.86 秒</text>
+  <text x="48" y="716" class="d">· 服务器要记住“这次调用在等谁回答”</text>
+  <text x="560" y="634" fill="var(--color-secondary-stroke)" font-size="12" font-weight="600">2026-07-28（本页讲的）</text>
+  <text x="560" y="656" class="d">· 问题放在结果的 inputRequests 里，不发单独请求</text>
+  <text x="560" y="676" class="d">· 第一次 tools/call 14 毫秒就返回 input_required</text>
+  <text x="560" y="696" class="d">· 用户回答后，客户端带着 inputResponses 重发原请求</text>
+  <text x="560" y="716" class="d">· 服务器什么都不用记，需要的上下文都在 requestState 里</text>
+  <text x="48" y="752" class="c">关键：两次 tools/call 是两个独立请求（id 1 和 id 2），中间没有任何连接或会话在等，所以服务器可以是无状态的。</text>
+
+  <!-- legend -->
+  <line x1="40" y1="802" x2="90" y2="802" class="req" marker-end="url(#a-req)"/><text x="100" y="806" class="d">请求</text>
+  <line x1="160" y1="802" x2="210" y2="802" class="res" marker-end="url(#a-res)"/><text x="220" y="806" class="d">响应</text>
+  <line x1="280" y1="802" x2="330" y2="802" class="ui" marker-end="url(#a-ui)"/><text x="340" y="806" class="d">宿主界面和用户之间（不属于 MCP）</text>
+</svg>

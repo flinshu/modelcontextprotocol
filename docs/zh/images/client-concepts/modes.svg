@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 640">
+  <style>
+    :root {
+      --bg: #0f172a; --bg-grid: #1e293b; --mask: #0f172a; --text: white; --text-muted: #94a3b8; --arrow: #64748b;
+      --color-primary-fill: rgba(8,51,68,0.4); --color-primary-stroke: #22d3ee;
+      --color-secondary-fill: rgba(6,78,59,0.4); --color-secondary-stroke: #34d399;
+      --color-tertiary-fill: rgba(76,29,149,0.4); --color-tertiary-stroke: #a78bfa;
+      --color-accent-fill: rgba(120,53,15,0.3); --color-accent-stroke: #fbbf24;
+      --color-alert-fill: rgba(136,19,55,0.4); --color-alert-stroke: #fb7185;
+      --color-neutral-fill: rgba(30,41,59,0.5); --color-neutral-stroke: #94a3b8;
+      --color-highlight-fill: rgba(59,130,246,0.3); --color-highlight-stroke: #60a5fa;
+    }
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .h { fill: var(--text); font-size: 16px; font-weight: 700; }
+    .k { fill: var(--text-muted); font-size: 11px; }
+    .v { fill: var(--text); font-size: 12px; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">两种征询模式，三种回应，一条隐私红线</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">比喻：普通信息让服务员当场记在点菜单上（表单）；银行卡密码请你自己去收银台的刷卡机上输（链接）</text>
+
+  <!-- form mode -->
+  <rect x="30" y="85" width="500" height="290" rx="12" fill="var(--mask)"/>
+  <rect x="30" y="85" width="500" height="290" rx="12" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="50" y="116" class="h">表单模式 form</text>
+  <text x="50" y="140" class="v">服务器给一份 schema，客户端照着生成表单</text>
+  <text x="50" y="172" class="k">适合</text><text x="50" y="192" class="v">确认操作、选座位和房型、补充偏好</text>
+  <text x="50" y="224" class="k">数据怎么走</text><text x="50" y="244" class="v">用户 → 客户端（按 schema 校验）→ 服务器</text>
+  <text x="50" y="276" class="k">声明方式</text><text x="50" y="296" class="v">"elicitation": {}  或  {"form": {}}</text>
+  <rect x="50" y="314" width="460" height="44" rx="6" fill="var(--color-alert-fill)" stroke="var(--color-alert-stroke)"/>
+  <text x="66" y="334" fill="var(--color-alert-stroke)" font-size="12" font-weight="700">禁止用表单要：</text>
+  <text x="66" y="351" class="v">密码 · API key · 访问令牌 · 支付凭证</text>
+
+  <!-- url mode -->
+  <rect x="550" y="85" width="500" height="290" rx="12" fill="var(--mask)"/>
+  <rect x="550" y="85" width="500" height="290" rx="12" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)" stroke-width="1.5"/>
+  <text x="570" y="116" class="h">链接模式 url</text>
+  <text x="570" y="140" class="v">服务器给一个网址，用户自己去那里完成</text>
+  <text x="570" y="172" class="k">适合</text><text x="570" y="192" class="v">输入凭证、第三方 OAuth 授权等敏感流程</text>
+  <text x="570" y="224" class="k">数据怎么走</text><text x="570" y="244" class="v">用户 ↔ 目标网站，不经过客户端和模型</text>
+  <text x="570" y="276" class="k">客户端必须</text>
+  <text x="570" y="296" class="v">显示完整网址 · 先征得用户同意再打开</text>
+  <text x="570" y="316" class="v">绝不自动访问 · 只知道用户同不同意</text>
+  <text x="570" y="350" class="k">声明方式</text><text x="650" y="350" class="v">"elicitation": {"form": {}, "url": {}}</text>
+
+  <!-- actions -->
+  <text x="30" y="414" fill="var(--text)" font-size="14" font-weight="700">用户的三种回应</text>
+  <rect x="30" y="428" width="330" height="96" rx="10" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.2"/>
+  <text x="50" y="456" fill="var(--color-secondary-stroke)" font-size="15" font-weight="700">accept 接受</text>
+  <text x="50" y="480" class="v">填好并提交，附带 content</text>
+  <text x="50" y="502" class="d">客户端先按 schema 校验再发出</text>
+  <rect x="375" y="428" width="330" height="96" rx="10" fill="var(--color-alert-fill)" stroke="var(--color-alert-stroke)" stroke-width="1.2"/>
+  <text x="395" y="456" fill="var(--color-alert-stroke)" font-size="15" font-weight="700">decline 拒绝</text>
+  <text x="395" y="480" class="v">明确表示“不给”</text>
+  <text x="395" y="502" class="d">服务器知道用户就是不愿意</text>
+  <rect x="720" y="428" width="330" height="96" rx="10" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)" stroke-width="1.2"/>
+  <text x="740" y="456" fill="var(--text)" font-size="15" font-weight="700">cancel 取消</text>
+  <text x="740" y="480" class="v">没做选择，直接关掉</text>
+  <text x="740" y="502" class="d">不置可否，没有给出明确答复</text>
+
+  <!-- deprecated -->
+  <rect x="30" y="546" width="1020" height="72" rx="10" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)" stroke-width="1"/>
+  <text x="48" y="570" fill="var(--text)" font-size="12" font-weight="700">客户端的另外两项能力：2026-07-28 已弃用，计划移除</text>
+  <text x="48" y="592" class="v">根目录 roots</text><text x="170" y="592" class="d">→ 改为通过工具参数、资源 URI 或服务器配置传目录和文件</text>
+  <text x="48" y="610" class="v">采样 sampling</text><text x="170" y="610" class="d">→ 服务器直接对接大模型厂商的 API，协议不再提供“借用客户端模型”的替代</text>
+</svg>

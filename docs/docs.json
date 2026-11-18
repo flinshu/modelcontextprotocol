@@ -952,7 +952,9 @@
               "zh/docs/2026-07-28/learn/architecture",
               "zh/docs/2026-07-28/learn/architecture-explained",
               "zh/docs/2026-07-28/learn/server-concepts",
-              "zh/docs/2026-07-28/learn/server-concepts-explained"
+              "zh/docs/2026-07-28/learn/server-concepts-explained",
+              "zh/docs/2026-07-28/learn/client-concepts",
+              "zh/docs/2026-07-28/learn/client-concepts-explained"
             ]
           }
         ]
