@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 760">
+  <style>
+    :root {
+      --bg: #0f172a; --bg-grid: #1e293b; --mask: #0f172a; --text: white; --text-muted: #94a3b8; --arrow: #64748b;
+      --color-primary-fill: rgba(8,51,68,0.4); --color-primary-stroke: #22d3ee;
+      --color-secondary-fill: rgba(6,78,59,0.4); --color-secondary-stroke: #34d399;
+      --color-tertiary-fill: rgba(76,29,149,0.4); --color-tertiary-stroke: #a78bfa;
+      --color-accent-fill: rgba(120,53,15,0.3); --color-accent-stroke: #fbbf24;
+      --color-alert-fill: rgba(136,19,55,0.4); --color-alert-stroke: #fb7185;
+      --color-neutral-fill: rgba(30,41,59,0.5); --color-neutral-stroke: #94a3b8;
+      --color-highlight-fill: rgba(59,130,246,0.3); --color-highlight-stroke: #60a5fa;
+    }
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .h { fill: var(--text); font-size: 14px; font-weight: 700; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+    .c { fill: var(--text); font-size: 11px; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--arrow)"/></marker>
+    <marker id="a-r" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-alert-stroke)"/></marker>
+    <marker id="a-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-secondary-stroke)"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">程序化工具调用（代码模式）：让模型写脚本，而不是一步一步调</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">比喻：与其让跑腿的每办一件事都回来把所有单据念一遍，不如写好一张办事清单，让他办完只带回一句总结</text>
+
+  <!-- direct -->
+  <rect x="30" y="85" width="500" height="230" rx="12" fill="var(--color-alert-fill)" stroke="var(--color-alert-stroke)" stroke-width="1.3"/>
+  <text x="50" y="110" fill="var(--color-alert-stroke)" font-size="14" font-weight="700">直接调用</text>
+  <text x="50" y="130" class="d">任务：找出过去一小时的错误日志，每种错误建一张工单</text>
+  <rect x="50" y="146" width="100" height="40" rx="6" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)"/>
+  <text x="100" y="171" class="c" text-anchor="middle">模型</text>
+  <rect x="380" y="146" width="130" height="40" rx="6" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)"/>
+  <text x="445" y="171" class="c" text-anchor="middle">日志 / 工单服务器</text>
+  <line x1="150" y1="158" x2="376" y2="158" stroke="var(--arrow)" stroke-width="1.3" marker-end="url(#a)"/>
+  <line x1="380" y1="176" x2="154" y2="176" stroke="var(--color-alert-stroke)" stroke-width="2.5" marker-end="url(#a-r)"/>
+  <text x="265" y="198" fill="var(--color-alert-stroke)" font-size="11" text-anchor="middle">几千条日志全部流过模型</text>
+  <text x="50" y="230" class="c">· 每次调用都是一来一回</text>
+  <text x="50" y="252" class="c">· 中间结果不管有没有用，都进模型的上下文</text>
+  <text x="50" y="274" class="c">· 累计 10 万+ token，又贵又慢</text>
+
+  <!-- code mode -->
+  <rect x="550" y="85" width="500" height="230" rx="12" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.3"/>
+  <text x="570" y="110" fill="var(--color-secondary-stroke)" font-size="14" font-weight="700">程序化工具调用</text>
+  <text x="570" y="130" class="d">同一个任务，模型写一段脚本交给沙箱</text>
+  <rect x="570" y="146" width="90" height="40" rx="6" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)"/>
+  <text x="615" y="171" class="c" text-anchor="middle">模型</text>
+  <rect x="740" y="146" width="90" height="40" rx="6" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)"/>
+  <text x="785" y="171" class="c" text-anchor="middle">沙箱</text>
+  <rect x="900" y="146" width="130" height="40" rx="6" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)"/>
+  <text x="965" y="171" class="c" text-anchor="middle">日志 / 工单服务器</text>
+  <line x1="660" y1="158" x2="736" y2="158" stroke="var(--arrow)" stroke-width="1.3" marker-end="url(#a)"/>
+  <text x="698" y="150" class="d" text-anchor="middle">~200 token</text>
+  <line x1="830" y1="158" x2="896" y2="158" stroke="var(--arrow)" stroke-width="1.3" marker-end="url(#a)"/>
+  <line x1="900" y1="176" x2="834" y2="176" stroke="var(--arrow)" stroke-width="2.5" marker-end="url(#a)"/>
+  <line x1="740" y1="176" x2="664" y2="176" stroke="var(--color-secondary-stroke)" stroke-width="1.3" marker-end="url(#a-g)"/>
+  <text x="698" y="198" fill="var(--color-secondary-stroke)" font-size="11" text-anchor="middle">~15 token</text>
+  <text x="570" y="230" class="c">· 过滤、去重、循环建单都在沙箱里做</text>
+  <text x="570" y="252" class="c">· 日志数据在服务器之间流动，不进模型</text>
+  <text x="570" y="274" class="c">· 模型只看到一句：“从 N 条日志建了 M 张工单”</text>
+  <text x="570" y="298" class="d">代价：客户端要自己实现一个沙箱</text>
+
+  <!-- architecture -->
+  <rect x="30" y="335" width="1020" height="235" rx="12" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="46" y="358" fill="var(--color-highlight-stroke)" font-size="13" font-weight="700">怎么搭：三个角色</text>
+
+  <rect x="50" y="378" width="200" height="120" rx="10" fill="var(--mask)"/>
+  <rect x="50" y="378" width="200" height="120" rx="10" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)" stroke-width="1.3"/>
+  <text x="150" y="404" class="h" text-anchor="middle">模型</text>
+  <text x="150" y="428" class="d" text-anchor="middle">对着“类型化的函数”写代码</text>
+  <text x="150" y="448" class="c" text-anchor="middle">logging_getLogs(...)</text>
+  <text x="150" y="466" class="c" text-anchor="middle">ticketing_createIssue(...)</text>
+  <text x="150" y="486" class="d" text-anchor="middle">只看得到 console.log 的输出</text>
+
+  <rect x="320" y="378" width="220" height="120" rx="10" fill="var(--mask)"/>
+  <rect x="320" y="378" width="220" height="120" rx="10" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)" stroke-width="1.3"/>
+  <text x="430" y="404" class="h" text-anchor="middle">沙箱</text>
+  <text x="430" y="428" class="d" text-anchor="middle">运行模型写的代码</text>
+  <text x="430" y="448" class="c" text-anchor="middle">没有网络 · 没有凭证</text>
+  <text x="430" y="466" class="c" text-anchor="middle">限时 · 限内存</text>
+  <text x="430" y="486" class="d" text-anchor="middle">唯一出口：函数存根</text>
+
+  <rect x="610" y="378" width="230" height="120" rx="10" fill="var(--mask)"/>
+  <rect x="610" y="378" width="230" height="120" rx="10" fill="var(--color-highlight-fill)" stroke="var(--color-highlight-stroke)" stroke-width="1.3"/>
+  <text x="725" y="404" class="h" text-anchor="middle">宿主（中间人）</text>
+  <text x="725" y="428" class="d" text-anchor="middle">拦截函数调用，转成 tools/call</text>
+  <text x="725" y="448" class="c" text-anchor="middle">持有令牌，转发时才加上</text>
+  <text x="725" y="466" class="c" text-anchor="middle">每次调用照样审批</text>
+  <text x="725" y="486" class="d" text-anchor="middle">在规范眼里它仍是 MCP 宿主</text>
+
+  <rect x="900" y="378" width="130" height="52" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)"/>
+  <text x="965" y="409" class="c" text-anchor="middle">MCP 服务器 A</text>
+  <rect x="900" y="446" width="130" height="52" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)"/>
+  <text x="965" y="477" class="c" text-anchor="middle">MCP 服务器 B</text>
+
+  <line x1="250" y1="425" x2="316" y2="425" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="283" y="418" class="d" text-anchor="middle">代码</text>
+  <line x1="320" y1="455" x2="254" y2="455" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="287" y="472" class="d" text-anchor="middle">输出</text>
+  <line x1="540" y1="425" x2="606" y2="425" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="573" y="418" class="d" text-anchor="middle">函数调用</text>
+  <line x1="610" y1="455" x2="544" y2="455" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="577" y="472" class="d" text-anchor="middle">返回值</text>
+  <line x1="840" y1="410" x2="896" y2="404" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="840" y1="466" x2="896" y2="472" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <text x="50" y="526" class="c">函数从哪来：宿主读取每个工具的参数和 outputSchema，自动生成带类型的函数。</text>
+  <text x="50" y="548" class="d">没有 outputSchema 时：返回值先当 any/string 处理；或者让一个小模型把结果整理成预期类型，但要先校验再用。</text>
+
+  <!-- security -->
+  <rect x="30" y="590" width="1020" height="150" rx="10" fill="var(--color-alert-fill)" stroke="var(--color-alert-stroke)" stroke-width="1.2"/>
+  <text x="48" y="614" fill="var(--color-alert-stroke)" font-size="13" font-weight="700">安全要点（多了一个“执行代码”的攻击面）</text>
+  <text x="48" y="640" class="c">· 逐次授权：批准了脚本 ≠ 批准它运行时的每次调用</text>
+  <text x="560" y="640" class="c">· 网络隔离：沙箱不能直接联网，一切经宿主转发</text>
+  <text x="48" y="662" class="c">· 跨服务器的数据：A 的结果对 B 来说是不可信输入</text>
+  <text x="560" y="662" class="c">· 不暴露凭证：令牌只在宿主手里</text>
+  <text x="48" y="684" class="c">· 资源限制：给沙箱设超时和内存上限</text>
+  <text x="560" y="684" class="c">· 输出过滤：控制台输出先校验、截断再给模型</text>
+  <text x="48" y="714" class="d">错误处理：工具的 isError 结果在生成的函数里转成异常，脚本就能 try/catch；脚本出错退出时，把错误作为结果交给模型自己修正，已经产生的副作用由模型说明。</text>
+</svg>

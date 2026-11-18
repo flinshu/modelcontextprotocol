@@ -1,0 +1,184 @@
+---
+title: 客户端最佳实践 · 费曼解读
+sidebarTitle: 客户端最佳实践（解读）
+description: 工具多到成百上千个时，宿主该怎么办：渐进式发现管“什么时候给模型看”，程序化工具调用管“怎么调用”。
+type: docs
+---
+
+<Info>
+  本页是社区编写的**非官方**解读，用费曼学习法重讲[《客户端最佳实践》](/zh/docs/2026-07-28/develop/clients/client-best-practices)（译文），对应英文原文是 [Client Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/develop/clients/client-best-practices)。解读和配图是二次创作，用词以通俗为先，严谨定义请以原文和[规范](https://modelcontextprotocol.io/specification/2026-07-28)为准。建议先读[架构](/zh/docs/2026-07-28/learn/architecture-explained)和[服务器](/zh/docs/2026-07-28/learn/server-concepts-explained)两篇解读。
+</Info>
+
+## 一句话版
+
+**工具太多时，别一股脑全塞给模型：说明书用到才拿出来（渐进式发现），一串操作让模型写成脚本一次跑完（程序化工具调用）。**
+
+## 问题出在哪
+
+宿主（比如一个 Agent）连的服务器越来越多，手上可能有几百上千个工具。最朴素的做法是：**每次对话一开始，就把所有工具的定义都交给模型**。
+
+工具少的时候没问题。工具一多，就有两个麻烦：
+
+1. **说明书太占地方**：光是工具定义就可能吃掉大半个上下文窗口，用户的话还没读，地方就快没了。又费 token 又慢，几百个工具里挑一个，模型也更容易挑错。
+2. **中间结果太占地方**：一个任务要连着调好几个工具时，每一步的结果都要流过模型，哪怕模型根本用不着这些数据。
+
+原文给了两个对策，正好各管一头：
+
+| 模式 | 管什么 | 解决哪个麻烦 |
+|---|---|---|
+| **渐进式发现** | 工具定义**什么时候**进入上下文 | 说明书太占地方 |
+| **程序化工具调用** | 工具**怎么**调用 | 中间结果太占地方 |
+
+## 渐进式发现：说明书用到才拿出来
+
+打个比方：去图书馆不必把所有书都搬上桌。先翻**目录卡片**，挑中一本再**借出来细看**，最后才**用它**。
+
+<a href="/zh/images/client-best-practices/progressive.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/client-best-practices/progressive.light.svg" alt="渐进式发现：一开始全塞进去约 15 万 token，按需发现约 2000 token；目录、查看、执行三层；四种搜索策略" /></a>
+<a href="/zh/images/client-best-practices/progressive.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/client-best-practices/progressive.svg" alt="渐进式发现：一开始全塞进去约 15 万 token，按需发现约 2000 token；目录、查看、执行三层；四种搜索策略" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+做法：
+
+- 宿主照常用 `tools/list` 拿到所有工具定义，但**先不放进模型的上下文**；
+- 只给模型一个轻量的“元工具” `search_tools`；
+- 模型需要哪个工具，宿主再把它的完整定义加载进来。
+
+原文的对比：一开始全塞进去，光定义就约 **15 万 token**；按需发现只要约 **2000 token**。
+
+<Tip>
+  你现在用的 Claude Code 就是这么做的。工具很多时，它一开始只给模型列出一部分工具的**名字**，完整的参数定义要等模型用工具搜索拉取之后才加载。这就是渐进式发现。
+</Tip>
+
+### 什么时候切换
+
+不是一上来就要这么做。原文的建议是设一个**阈值**：工具定义占到上下文窗口的 **1%–5%** 时，就从“全部加载”切换到“按需发现”。
+
+### 常见做法：三层
+
+1. **目录（Catalog）**：模型调 `search_tools({query: "update salesforce record"})`，只拿回**名字和一句话描述**。
+2. **查看（Inspect）**：挑中 `salesforce_updateRecord` 后，调 `get_tool_details` 只取**这一个**工具的完整定义（参数、输出结构、说明）。
+3. **执行（Execute）**：清楚参数后，正常调用。
+
+全程只加载了真正用到的定义，模型也只需要在几个相关工具里做选择，所以**既省 token，又选得更准**。
+
+### search_tools 怎么搜
+
+| 策略 | 说明 |
+|---|---|
+| 关键词 | BM25、正则。简单有效，工具名和描述写得好时尤其好用 |
+| 向量 | 按描述的语义相似度检索，能处理同义词 |
+| 子代理 | 让一个又小又快的模型来挑。效果通常很好，但更贵 |
+| 混合 | 综合几种排名，或按场景选择策略 |
+
+不管用哪种，“目录 → 查看 → 执行”三层的思路都不变，换的只是目录这一层怎么搜。一些模型厂商（如 OpenAI、Anthropic）已经自带工具搜索，有的话可以优先用；需要按领域排序、按权限过滤时，再自己实现。
+
+### 不只工具，服务器也可以按需连
+
+<a href="/zh/images/client-best-practices/servers-cache.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/client-best-practices/servers-cache.light.svg" alt="按需连接服务器的查、连、断三步，以及协议缓存提示和提示词缓存的注意事项" /></a>
+<a href="/zh/images/client-best-practices/servers-cache.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/client-best-practices/servers-cache.svg" alt="按需连接服务器的查、连、断三步，以及协议缓存提示和提示词缓存的注意事项" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+宿主不必一启动就连上所有配置好的服务器，可以：
+
+1. **查**：维护一张服务器注册表（名字加一句话简介）。用户提到 CRM 时，模型调 `search_available_servers("CRM")`，发现有个还没连的 Salesforce 服务器。
+2. **连**：模型调 `enable_server("salesforce")`，宿主这时才去 `server/discover`、`tools/list`，把工具交给模型。
+3. **断**：任务完成后 `disable_server("salesforce")`，腾出上下文。
+
+这特别适合**通用 Agent**，因为事先不知道用户要干什么。配合 Agent Skills 更妙：一个 Skill 可以声明自己需要哪些服务器，用到这个 Skill 时才连接。
+
+### 落地时的四条建议
+
+| 建议 | 为什么 |
+|---|---|
+| 提供多种详细程度 | 让模型自己选：只要名字、名字加描述，还是完整定义 |
+| 在宿主里缓存工具定义 | 取回来一次就记住，之后再放进上下文不用重新 `tools/list` |
+| 收到 `list_changed` 就刷新 | 服务器的工具变了，重建搜索目录 |
+| 按服务器分组展示 | 让模型看出哪些能力来自同一处、彼此相关 |
+
+### 两种缓存，别搞混
+
+**协议的缓存提示**：`tools/list` 这类列表结果，以及 `server/discover`、`resources/read` 的结果，都带 `ttlMs` 和 `cacheScope`，照规范用就行。注意：**一收到 `list_changed`，缓存的列表就算过期**，哪怕 TTL 还没到。
+
+**模型厂商的提示词缓存**：这是另一回事，也是最容易踩的坑。大多数厂商会缓存提示词的开头部分，**包括 `tools` 数组**。如果对话中途增删工具，缓存就失效了，多花的 token 可能比你省下的还多。
+
+比喻：一段背熟的开场白，改一下顺序就得重背。所以原文建议：
+
+- 新发现的工具定义**追加在缓存断点之后**，不要重排 `tools` 数组；
+- 或者干脆只给模型一个固定的 `call_tool({name, args})`，让 `tools` 数组从头到尾不变；
+- 断开服务器放在**对话边界**做，不要每一轮都断。
+
+## 程序化工具调用：让模型写脚本
+
+打个比方：与其让跑腿的每办一件事都回来把所有单据念一遍，不如**写好一张办事清单**，让他办完只带回一句总结。
+
+<a href="/zh/images/client-best-practices/code-mode.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/client-best-practices/code-mode.light.svg" alt="直接调用与程序化工具调用的 token 对比，模型、沙箱、宿主三个角色的架构，以及安全要点" /></a>
+<a href="/zh/images/client-best-practices/code-mode.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/client-best-practices/code-mode.svg" alt="直接调用与程序化工具调用的 token 对比，模型、沙箱、宿主三个角色的架构，以及安全要点" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+原文的任务：**找出过去一小时的所有错误日志，每种不同的错误建一张工单。**
+
+- **直接调用**：先调日志工具，几千条日志全部流进模型；模型再一条条看、去重，然后一次次调建单工具。累计可能 10 万多 token。
+- **程序化工具调用**：模型写一段约 200 token 的脚本，交给沙箱执行。拉日志、过滤、去重、循环建单都在沙箱里完成，日志数据在服务器之间流动，**不进模型**。最后模型只看到一句约 15 token 的总结：“从 N 条错误日志建了 M 张工单”。
+
+### 怎么做到
+
+1. **把工具变成函数**：宿主读取每个工具的参数和 `outputSchema`，自动生成带类型的函数，比如 `logging_getLogs(...)`、`ticketing_createIssue(...)`。
+2. **模型对着函数写代码**：一段脚本里调用多个工具，数据处理都写在代码里。
+3. **沙箱执行**：脚本里的函数调用被拦截，交给宿主转成真正的 `tools/call`。只有 `console.log` 的输出回到模型。
+
+这里能看出 `outputSchema` 的价值：服务器提供了输出结构，宿主就能生成准确的返回类型。没有的话，原文建议先把返回值当 `any` 或字符串处理；或者让一个小模型把结果整理成预期类型，但要先校验再用，因为小模型可能编造或漏掉字段。
+
+### 三个角色
+
+- **模型**：写代码，只看得到沙箱的输出。
+- **沙箱**：运行模型写的代码。**不能联网、拿不到凭证**，唯一的出口是那些函数存根。
+- **宿主**：中间人。拦截函数调用，找到对应的服务器执行 `tools/call`，再把结果交回沙箱。**令牌只在宿主手里**，转发时才加上。
+
+原文列了几个可选的沙箱运行时：JavaScript 用 Deno、isolated-vm；Python 用 Monty（实验性）；TypeScript 用 pctx（早期阶段）；任何语言都可以编译成 Wasm 用 Wasmtime 运行。不管选哪个，接入方式都一样。
+
+### 安全：多了一个“执行代码”的攻击面
+
+- **逐次授权**：批准了脚本，**不等于**批准它运行时的每一次工具调用。宿主可以按类别授权（比如“这次运行允许建工单”），但每次调用仍要按授权检查。
+- **跨服务器的数据不可信**：A 服务器的结果，对 B 服务器来说是不可信的输入，要照常审查。
+- **网络隔离**：沙箱不能直接联网，所有外部通信都经过宿主。
+- **不暴露凭证**：API key 和令牌只在宿主手里，生成的代码碰不到。
+- **资源限制**：给沙箱设超时和内存上限，防止脚本跑飞。
+- **输出过滤**：控制台输出先校验、截断，再交给模型。
+
+**出错怎么办**：MCP 工具出错时返回的是带 `isError: true` 的正常结果，不是传输错误。生成的函数应该把它转成异常，这样脚本就能用 `try/catch`。脚本因错误中断时，把错误作为结果交给模型自己修正；已经做了一半的副作用（比如已经建了几张单），由模型负责说明。
+
+## 两个模式一起用
+
+两者配合得很好：模型先用发现工具找到需要的几个工具、加载它们的定义，再写**一个脚本**一次调用它们。这样**工具定义**的 token 和**工具结果**的 token 都省下来了，模型的上下文留给思考，而不是用来搬运数据。
+
+## 费曼自测
+
+能用自己的话答出来，才算真懂。先想一想，再展开看参考答案。
+
+<AccordionGroup>
+  <Accordion title="1. 渐进式发现和程序化工具调用分别解决什么问题？">
+    渐进式发现解决“工具定义太占上下文”，控制定义什么时候进入上下文；程序化工具调用解决“中间结果太占上下文”，让多步操作在沙箱里完成，只把最终结果交给模型。
+  </Accordion>
+  <Accordion title="2. 什么时候该从“全部加载”切换到渐进式发现？">
+    工具少、定义占的地方小时，全部加载就行。原文建议设一个阈值：工具定义占到上下文窗口的 1%–5% 时切换。
+  </Accordion>
+  <Accordion title="3. 三层做法是哪三层？为什么能提高选择准确率？">
+    目录（搜索，只返回名字和一句话描述）、查看（只取一个工具的完整定义）、执行（正常调用）。模型只需要在几个相关工具里选，而不是扫描几百个无关工具，所以更容易选对。
+  </Accordion>
+  <Accordion title="4. 对话中途加工具，为什么可能反而更费 token？怎么避免？">
+    模型厂商会缓存提示词开头，包括 tools 数组。中途增删工具会让缓存失效，多花的可能比省下的还多。办法是把新定义追加在缓存断点之后，或者只提供一个固定的 `call_tool({name, args})`，让 tools 数组不变；断开服务器放在对话边界做。
+  </Accordion>
+  <Accordion title="5. 程序化工具调用里，为什么日志数据不会进入模型的上下文？">
+    过滤和去重都写在脚本里、在沙箱中执行，数据在沙箱、宿主和服务器之间流动。模型只看到 `console.log` 输出的那一句总结。
+  </Accordion>
+  <Accordion title="6. 沙箱为什么不能联网，也拿不到令牌？">
+    沙箱运行的是模型写的代码，不能完全信任。它只能通过函数存根让宿主代为调用工具；宿主持有令牌、负责授权和访问控制，这样生成的代码既泄露不了凭证，也绕不过审批。
+  </Accordion>
+  <Accordion title="7. 用户批准了一段脚本，它运行时调用的每个工具还要审批吗？">
+    要。批准脚本不等于批准它运行时的每次调用。宿主可以按类别授权（比如这次运行允许建工单），但每次调用仍要按这个授权检查。
+  </Accordion>
+</AccordionGroup>
+
+## 动手看一看
+
+- [MCP 图解](https://flinshu.github.io/mcp-explained/#search)：“工具搜索”和“Codemode”两课用动画演示了本页的两个模式，还可以切换“经由网关”和“仅客户端”两种做法对比。

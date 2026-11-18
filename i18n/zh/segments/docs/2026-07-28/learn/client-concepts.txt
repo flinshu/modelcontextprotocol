@@ -174,3 +174,4 @@ Roots and sampling are [deprecated](/specification/2026-07-28/deprecated) as of 
 @@ zh
 - **根目录**：通过工具参数、资源 URI 或服务器配置传递目录或文件。
 - **采样**：直接对接 LLM 提供商的 API。对于通过客户端请求模型补全这件事，协议没有定义替代机制。
+

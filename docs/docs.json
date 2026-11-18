@@ -956,6 +956,13 @@
               "zh/docs/2026-07-28/learn/client-concepts",
               "zh/docs/2026-07-28/learn/client-concepts-explained"
             ]
+          },
+          {
+            "group": "用 MCP 开发",
+            "pages": [
+              "zh/docs/2026-07-28/develop/clients/client-best-practices",
+              "zh/docs/2026-07-28/develop/clients/client-best-practices-explained"
+            ]
           }
         ]
       }
