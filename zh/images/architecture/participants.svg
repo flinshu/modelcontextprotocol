@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 560">
+  <style>
+    :root {
+      --bg: #0f172a; --bg-grid: #1e293b; --mask: #0f172a; --text: white; --text-muted: #94a3b8; --arrow: #64748b;
+      --color-primary-fill: rgba(8,51,68,0.4); --color-primary-stroke: #22d3ee;
+      --color-secondary-fill: rgba(6,78,59,0.4); --color-secondary-stroke: #34d399;
+      --color-tertiary-fill: rgba(76,29,149,0.4); --color-tertiary-stroke: #a78bfa;
+      --color-accent-fill: rgba(120,53,15,0.3); --color-accent-stroke: #fbbf24;
+      --color-neutral-fill: rgba(30,41,59,0.5); --color-neutral-stroke: #94a3b8;
+    }
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="var(--arrow)"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- title -->
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">MCP 的三个角色：一个宿主，多个客户端，多个服务器</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">比喻：宿主是“助理”，服务器是各家“供应商”，客户端是助理给每家供应商配的“专属对接人”</text>
+
+  <!-- regions -->
+  <rect x="30" y="85" width="770" height="400" rx="12" fill="none" stroke="var(--color-secondary-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="44" y="104" fill="var(--color-secondary-stroke)" font-size="12" font-weight="600">你的电脑 · 本地服务器走 stdio</text>
+  <rect x="840" y="250" width="290" height="235" rx="12" fill="none" stroke="var(--color-accent-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="854" y="269" fill="var(--color-accent-stroke)" font-size="12" font-weight="600">远程 · 走 Streamable HTTP</text>
+
+  <!-- host region -->
+  <rect x="55" y="120" width="330" height="345" rx="10" fill="none" stroke="var(--color-primary-stroke)" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="70" y="141" fill="var(--color-primary-stroke)" font-size="13" font-weight="700">宿主 Host（AI 应用）</text>
+  <text x="70" y="159" fill="var(--text-muted)" font-size="11">如 Claude Code、VS Code、Claude Desktop</text>
+
+  <!-- connections -->
+  <line x1="355" y1="202" x2="532" y2="186" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="440" y="185" fill="var(--text-muted)" font-size="11" text-anchor="middle">专线</text>
+  <line x1="355" y1="272" x2="532" y2="296" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="440" y="275" fill="var(--text-muted)" font-size="11" text-anchor="middle">专线</text>
+  <path d="M 355,342 L 700,342 L 700,355 L 862,355" fill="none" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="460" y="336" fill="var(--text-muted)" font-size="11" text-anchor="middle">专线</text>
+  <path d="M 355,412 L 700,412 L 700,395 L 862,395" fill="none" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="460" y="406" fill="var(--text-muted)" font-size="11" text-anchor="middle">专线</text>
+
+  <!-- clients -->
+  <rect x="85" y="177" width="270" height="50" rx="6" fill="var(--mask)"/>
+  <rect x="85" y="177" width="270" height="50" rx="6" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="220" y="199" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">客户端 1</text>
+  <text x="220" y="216" fill="var(--text-muted)" font-size="11" text-anchor="middle">只对接服务器 A</text>
+
+  <rect x="85" y="247" width="270" height="50" rx="6" fill="var(--mask)"/>
+  <rect x="85" y="247" width="270" height="50" rx="6" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="220" y="269" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">客户端 2</text>
+  <text x="220" y="286" fill="var(--text-muted)" font-size="11" text-anchor="middle">只对接服务器 B</text>
+
+  <rect x="85" y="317" width="270" height="50" rx="6" fill="var(--mask)"/>
+  <rect x="85" y="317" width="270" height="50" rx="6" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="220" y="339" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">客户端 3</text>
+  <text x="220" y="356" fill="var(--text-muted)" font-size="11" text-anchor="middle">对接服务器 C</text>
+
+  <rect x="85" y="387" width="270" height="50" rx="6" fill="var(--mask)"/>
+  <rect x="85" y="387" width="270" height="50" rx="6" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="220" y="409" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">客户端 4</text>
+  <text x="220" y="426" fill="var(--text-muted)" font-size="11" text-anchor="middle">也对接服务器 C（另一条连接）</text>
+
+  <!-- local servers -->
+  <rect x="535" y="155" width="240" height="62" rx="6" fill="var(--mask)"/>
+  <rect x="535" y="155" width="240" height="62" rx="6" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="655" y="180" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">服务器 A · 本地</text>
+  <text x="655" y="198" fill="var(--text-muted)" font-size="11" text-anchor="middle">例：文件系统</text>
+
+  <rect x="535" y="265" width="240" height="62" rx="6" fill="var(--mask)"/>
+  <rect x="535" y="265" width="240" height="62" rx="6" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="655" y="290" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">服务器 B · 本地</text>
+  <text x="655" y="308" fill="var(--text-muted)" font-size="11" text-anchor="middle">例：数据库</text>
+
+  <!-- remote server -->
+  <rect x="865" y="320" width="240" height="110" rx="6" fill="var(--mask)"/>
+  <rect x="865" y="320" width="240" height="110" rx="6" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)" stroke-width="1.5"/>
+  <text x="985" y="360" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">服务器 C · 远程</text>
+  <text x="985" y="380" fill="var(--text-muted)" font-size="11" text-anchor="middle">例：Sentry</text>
+  <text x="985" y="400" fill="var(--text-muted)" font-size="11" text-anchor="middle">同时服务很多客户端</text>
+
+  <!-- legend / takeaway -->
+  <text x="30" y="515" fill="var(--text)" font-size="12" font-weight="600">要点</text>
+  <text x="80" y="515" fill="var(--text-muted)" font-size="12">一个服务器配一个专属客户端；“服务器”指提供上下文的程序，和它在哪台机器上跑无关。</text>
+  <text x="80" y="537" fill="var(--text-muted)" font-size="12">本地服务器（stdio）通常只服务一个客户端，远程服务器（Streamable HTTP）通常服务很多客户端。</text>
+</svg>

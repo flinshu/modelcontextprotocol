@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720">
+  <style>
+    :root {
+      --bg: #0f172a; --bg-grid: #1e293b; --mask: #0f172a; --text: white; --text-muted: #94a3b8; --arrow: #64748b;
+      --color-primary-fill: rgba(8,51,68,0.4); --color-primary-stroke: #22d3ee;
+      --color-secondary-fill: rgba(6,78,59,0.4); --color-secondary-stroke: #34d399;
+      --color-tertiary-fill: rgba(76,29,149,0.4); --color-tertiary-stroke: #a78bfa;
+      --color-accent-fill: rgba(120,53,15,0.3); --color-accent-stroke: #fbbf24;
+      --color-alert-fill: rgba(136,19,55,0.4); --color-alert-stroke: #fb7185;
+      --color-neutral-fill: rgba(30,41,59,0.5); --color-neutral-stroke: #94a3b8;
+      --color-highlight-fill: rgba(59,130,246,0.3); --color-highlight-stroke: #60a5fa;
+    }
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .h { fill: var(--text); font-size: 14px; font-weight: 700; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+    .c { fill: var(--text); font-size: 11px; }
+    .tp { fill: var(--color-tertiary-stroke); font-size: 11px; }
+    .tr { fill: var(--color-secondary-stroke); font-size: 11px; }
+    .tt { fill: var(--color-primary-stroke); font-size: 11px; }
+    .step { fill: var(--color-highlight-stroke); font-size: 12px; font-weight: 700; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-highlight-stroke)"/></marker>
+    <marker id="a-al" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-alert-stroke)"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">多个服务器一起干活：一次巴塞罗那旅行</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">一个模板来自旅行服务器，资料来自旅行和日历服务器，工具横跨三个服务器；宿主把三家的能力汇总给模型</text>
+
+  <!-- user -->
+  <rect x="30" y="250" width="140" height="90" rx="10" fill="var(--mask)"/>
+  <rect x="30" y="250" width="140" height="90" rx="10" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)" stroke-width="1.5"/>
+  <text x="100" y="285" class="h" text-anchor="middle">用户</text>
+  <text x="100" y="306" class="d" text-anchor="middle">选模板、填参数</text>
+  <text x="100" y="324" class="d" text-anchor="middle">选资料、确认预订</text>
+
+  <!-- host -->
+  <rect x="250" y="150" width="300" height="300" rx="12" fill="var(--mask)"/>
+  <rect x="250" y="150" width="300" height="300" rx="12" fill="var(--color-highlight-fill)" stroke="var(--color-highlight-stroke)" stroke-width="1.5"/>
+  <text x="270" y="176" class="h">宿主（AI 旅行规划应用）</text>
+  <text x="270" y="196" class="d">为三个服务器各开一个客户端</text>
+  <rect x="275" y="214" width="250" height="96" rx="8" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)"/>
+  <text x="400" y="240" class="h" text-anchor="middle">模型</text>
+  <text x="400" y="262" class="d" text-anchor="middle">按模板的指示，结合资料</text>
+  <text x="400" y="280" class="d" text-anchor="middle">决定依次调用哪些工具</text>
+  <text x="275" y="338" class="d">汇总给模型的工具表：</text>
+  <text x="275" y="358" class="c">searchFlights · searchHotels · bookVacation</text>
+  <text x="275" y="378" class="c">checkWeather</text>
+  <text x="275" y="398" class="c">createCalendarEvent · sendEmail</text>
+  <text x="275" y="428" class="d">旅行服务器的模板，可以让模型去调天气服务器的工具</text>
+
+  <!-- servers -->
+  <rect x="680" y="85" width="390" height="250" rx="10" fill="var(--mask)"/>
+  <rect x="680" y="85" width="390" height="250" rx="10" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="700" y="110" class="h">旅行服务器</text>
+  <text x="800" y="110" class="d">航班 · 酒店 · 行程</text>
+  <text x="700" y="140" class="d">提示词模板</text><text x="790" y="140" class="tp">plan-vacation</text>
+  <text x="700" y="168" class="d">资源</text><text x="790" y="168" class="tr">travel://preferences/europe</text>
+  <text x="790" y="186" class="tr">travel://past-trips/spain-2023</text>
+  <text x="700" y="214" class="d">工具</text><text x="790" y="214" class="tt">searchFlights</text>
+  <text x="790" y="232" class="tt">searchHotels</text>
+  <text x="790" y="250" class="tt">bookVacation</text>
+  <text x="790" y="272" class="d">（预订前通过征询请用户确认）</text>
+
+  <rect x="680" y="355" width="390" height="90" rx="10" fill="var(--mask)"/>
+  <rect x="680" y="355" width="390" height="90" rx="10" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="700" y="380" class="h">天气服务器</text>
+  <text x="800" y="380" class="d">气候数据和预报</text>
+  <text x="700" y="410" class="d">工具</text><text x="790" y="410" class="tt">checkWeather</text>
+
+  <rect x="680" y="465" width="390" height="130" rx="10" fill="var(--mask)"/>
+  <rect x="680" y="465" width="390" height="130" rx="10" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)" stroke-width="1.5"/>
+  <text x="700" y="490" class="h">日历 / 邮件服务器</text>
+  <text x="846" y="490" class="d">日程和沟通</text>
+  <text x="700" y="520" class="d">资源</text><text x="790" y="520" class="tr">calendar://events/2027-06</text>
+  <text x="700" y="548" class="d">工具</text><text x="790" y="548" class="tt">createCalendarEvent</text>
+  <text x="790" y="566" class="tt">sendEmail</text>
+
+  <!-- arrows -->
+  <line x1="170" y1="280" x2="246" y2="280" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="208" y="270" class="step" text-anchor="middle">①②</text>
+  <path d="M 550,190 L 615,190 L 615,140 L 676,140" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="600" y="132" class="step" text-anchor="middle">① prompts/get</text>
+  <path d="M 550,250 L 635,250 L 635,177 L 676,177" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 550,250 L 635,250 L 635,520 L 676,520" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="590" y="243" class="step" text-anchor="middle">② read</text>
+  <path d="M 550,370 L 655,370 L 655,232 L 676,232" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="550" y1="410" x2="676" y2="410" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 550,430 L 655,430 L 655,557 L 676,557" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="600" y="402" class="step" text-anchor="middle">③④ call</text>
+  <path d="M 680,272 L 600,272 L 600,470 L 100,470 L 100,344" fill="none" stroke="var(--color-alert-stroke)" stroke-width="1.3" stroke-dasharray="5,3" marker-end="url(#a-al)"/>
+  <text x="300" y="488" fill="var(--color-alert-stroke)" font-size="11" text-anchor="middle">④ 征询：“确认预订吗？”</text>
+
+  <!-- steps legend -->
+  <rect x="30" y="610" width="1040" height="96" rx="10" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)" stroke-width="1"/>
+  <text x="48" y="634" class="step">① 用户调用模板</text><text x="168" y="634" class="d">选 “Plan a vacation”，填出发地、目的地、日期、预算等 → prompts/get，服务器返回一段写好的指令</text>
+  <text x="48" y="656" class="step">② 用户选资料</text><text x="168" y="656" class="d">日历、旅行偏好、以往行程 → 宿主逐个 resources/read，交给模型当上下文</text>
+  <text x="48" y="678" class="step">③ 模型查信息</text><text x="168" y="678" class="d">searchFlights、searchHotels（旅行）· checkWeather（天气）</text>
+  <text x="48" y="700" class="step">④ 模型办事</text><text x="168" y="700" class="d">bookVacation（先征询用户确认）→ createCalendarEvent → sendEmail（日历 / 邮件）</text>
+</svg>

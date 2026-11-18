@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 880">
+  <style>
+    :root {
+    --bg: #f8fafc;
+    --bg-grid: #e2e8f0;
+    --mask: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --arrow: #64748b;
+    --color-primary-fill: rgba(6,182,212,0.12);
+    --color-primary-stroke: #0891b2;
+    --color-secondary-fill: rgba(5,150,105,0.12);
+    --color-secondary-stroke: #059669;
+    --color-tertiary-fill: rgba(124,58,237,0.12);
+    --color-tertiary-stroke: #7c3aed;
+    --color-accent-fill: rgba(217,119,6,0.12);
+    --color-accent-stroke: #d97706;
+    --color-alert-fill: rgba(225,29,72,0.12);
+    --color-alert-stroke: #e11d48;
+    --color-connector-fill: rgba(234,88,12,0.12);
+    --color-connector-stroke: #ea580c;
+    --color-neutral-fill: rgba(100,116,139,0.12);
+    --color-neutral-stroke: #64748b;
+    --color-highlight-fill: rgba(59,130,246,0.12);
+    --color-highlight-stroke: #3b82f6;
+}
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .req { stroke: var(--text-muted); stroke-width: 1.5; fill: none; }
+    .res { stroke: var(--arrow); stroke-width: 1.2; stroke-dasharray: 6,3; fill: none; }
+    .note { stroke: var(--color-accent-stroke); stroke-width: 1.2; stroke-dasharray: 2,3; fill: none; }
+    .host { stroke: var(--color-tertiary-stroke); stroke-width: 1.2; stroke-dasharray: 1,4; stroke-linecap: round; fill: none; }
+    .lbl { fill: var(--text); font-size: 11px; }
+    .lblm { fill: var(--text-muted); font-size: 11px; }
+    .lbln { fill: var(--color-accent-stroke); font-size: 11px; }
+    .lblh { fill: var(--color-tertiary-stroke); font-size: 11px; }
+    .ph { fill: var(--color-highlight-stroke); font-size: 12px; font-weight: 700; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a-req" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--text-muted)"/></marker>
+    <marker id="a-res" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--arrow)"/></marker>
+    <marker id="a-note" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polyline points="0 0, 10 3.5, 0 7" fill="none" stroke="var(--color-accent-stroke)" stroke-width="1.5"/></marker>
+    <marker id="a-host" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-tertiary-stroke)"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="38" fill="var(--text)" font-size="18" font-weight="700">走一遍官方的天气例子（2026-07-28）</text>
+  <text x="30" y="60" fill="var(--text-muted)" font-size="12">发现 → 列工具 → 调用 → 订阅变化；时间从上往下</text>
+
+  <!-- phase bands -->
+  <rect x="30" y="140" width="1020" height="82" rx="8" fill="var(--color-neutral-fill)"/>
+  <text x="44" y="160" class="ph">① 发现</text>
+  <rect x="30" y="232" width="1020" height="118" rx="8" fill="var(--color-neutral-fill)"/>
+  <text x="44" y="252" class="ph">② 列工具</text>
+  <rect x="30" y="360" width="1020" height="152" rx="8" fill="var(--color-neutral-fill)"/>
+  <text x="44" y="380" class="ph">③ 调用</text>
+  <rect x="30" y="522" width="1020" height="186" rx="8" fill="var(--color-neutral-fill)"/>
+  <text x="44" y="542" class="ph">④ 订阅变化</text>
+
+  <!-- lifelines -->
+  <line x1="200" y1="125" x2="200" y2="720" stroke="var(--arrow)" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="530" y1="125" x2="530" y2="720" stroke="var(--arrow)" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="870" y1="125" x2="870" y2="720" stroke="var(--arrow)" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- actors -->
+  <rect x="110" y="78" width="180" height="47" rx="6" fill="var(--mask)"/>
+  <rect x="110" y="78" width="180" height="47" rx="6" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)" stroke-width="1.5"/>
+  <text x="200" y="99" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">模型</text>
+  <text x="200" y="116" fill="var(--text-muted)" font-size="10" text-anchor="middle">在宿主里，决定用什么</text>
+
+  <rect x="430" y="78" width="200" height="47" rx="6" fill="var(--mask)"/>
+  <rect x="430" y="78" width="200" height="47" rx="6" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="530" y="99" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">MCP 客户端</text>
+  <text x="530" y="116" fill="var(--text-muted)" font-size="10" text-anchor="middle">宿主为这个服务器开的</text>
+
+  <rect x="770" y="78" width="200" height="47" rx="6" fill="var(--mask)"/>
+  <rect x="770" y="78" width="200" height="47" rx="6" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="870" y="99" fill="var(--text)" font-size="13" font-weight="600" text-anchor="middle">MCP 服务器</text>
+  <text x="870" y="116" fill="var(--text-muted)" font-size="10" text-anchor="middle">example-server</text>
+
+  <!-- ① discover -->
+  <line x1="534" y1="178" x2="864" y2="178" class="req" marker-end="url(#a-req)"/>
+  <text x="700" y="171" class="lbl" text-anchor="middle">server/discover（“你会什么？”）</text>
+  <line x1="866" y1="210" x2="536" y2="210" class="res" marker-end="url(#a-res)"/>
+  <text x="700" y="203" class="lblm" text-anchor="middle">支持 2026-07-28 · 有工具和资源 · 可缓存 1 小时</text>
+
+  <!-- ② tools/list -->
+  <line x1="534" y1="270" x2="864" y2="270" class="req" marker-end="url(#a-req)"/>
+  <text x="700" y="263" class="lbl" text-anchor="middle">tools/list</text>
+  <line x1="866" y1="304" x2="536" y2="304" class="res" marker-end="url(#a-res)"/>
+  <text x="700" y="297" class="lblm" text-anchor="middle">calculator_arithmetic · weather_current（缓存 5 分钟）</text>
+  <line x1="526" y1="336" x2="206" y2="336" class="host" marker-end="url(#a-host)"/>
+  <text x="365" y="329" class="lblh" text-anchor="middle">工具清单汇总进模型上下文</text>
+
+  <!-- ③ tools/call -->
+  <line x1="204" y1="398" x2="524" y2="398" class="host" marker-end="url(#a-host)"/>
+  <text x="365" y="391" class="lblh" text-anchor="middle">“查一下旧金山天气” → 用 weather_current</text>
+  <line x1="534" y1="432" x2="864" y2="432" class="req" marker-end="url(#a-req)"/>
+  <text x="700" y="425" class="lbl" text-anchor="middle">tools/call weather_current {location, units}</text>
+  <line x1="866" y1="466" x2="536" y2="466" class="res" marker-end="url(#a-res)"/>
+  <text x="700" y="459" class="lblm" text-anchor="middle">content：“68°F，局部多云……”</text>
+  <line x1="526" y1="498" x2="206" y2="498" class="host" marker-end="url(#a-host)"/>
+  <text x="365" y="491" class="lblh" text-anchor="middle">结果交还模型，模型回答用户</text>
+
+  <!-- ④ subscriptions -->
+  <line x1="534" y1="562" x2="864" y2="562" class="req" marker-end="url(#a-req)"/>
+  <text x="700" y="555" class="lbl" text-anchor="middle">subscriptions/listen {toolsListChanged: true}</text>
+  <line x1="866" y1="596" x2="536" y2="596" class="note" marker-end="url(#a-note)"/>
+  <text x="700" y="589" class="lbln" text-anchor="middle">notifications/subscriptions/acknowledged</text>
+  <text x="980" y="625" fill="var(--text-muted)" font-size="10" text-anchor="middle">……过了一会儿</text>
+  <text x="980" y="640" fill="var(--text-muted)" font-size="10" text-anchor="middle">工具清单变了</text>
+  <line x1="866" y1="660" x2="536" y2="660" class="note" marker-end="url(#a-note)"/>
+  <text x="700" y="653" class="lbln" text-anchor="middle">notifications/tools/list_changed（subscriptionId: 4）</text>
+  <line x1="534" y1="694" x2="864" y2="694" class="req" marker-end="url(#a-req)"/>
+  <text x="700" y="687" class="lbl" text-anchor="middle">tools/list（重新拉取最新清单）</text>
+
+  <!-- stateless callout -->
+  <rect x="30" y="732" width="1020" height="58" rx="8" fill="var(--color-highlight-fill)" stroke="var(--color-highlight-stroke)" stroke-width="1.2"/>
+  <text x="48" y="756" fill="var(--text)" font-size="12" font-weight="600">无状态：每个请求的 _meta 都自带三样东西，所以不需要先握手</text>
+  <text x="48" y="777" fill="var(--text-muted)" font-size="11">protocolVersion（说哪个版本）· clientCapabilities（我能处理什么）· clientInfo（我是谁）</text>
+
+  <!-- legend -->
+  <line x1="40" y1="822" x2="90" y2="822" class="req" marker-end="url(#a-req)"/><text x="100" y="826" class="lblm">请求（带 id，要回复）</text>
+  <line x1="270" y1="822" x2="320" y2="822" class="res" marker-end="url(#a-res)"/><text x="330" y="826" class="lblm">响应（同一个 id）</text>
+  <line x1="480" y1="822" x2="530" y2="822" class="note" marker-end="url(#a-note)"/><text x="540" y="826" class="lblm">通知（没有 id，不用回复，尽力而为）</text>
+  <line x1="800" y1="822" x2="850" y2="822" class="host" marker-end="url(#a-host)"/><text x="860" y="826" class="lblm">宿主内部（不属于 MCP）</text>
+  <text x="40" y="856" fill="var(--text-muted)" font-size="10">通知可能在断线时丢失，客户端最好偶尔主动刷新；服务器只推送它在确认消息里答应过的通知类型。</text>
+</svg>

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 620">
+  <style>
+    :root {
+    --bg: #f8fafc;
+    --bg-grid: #e2e8f0;
+    --mask: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --arrow: #64748b;
+    --color-primary-fill: rgba(6,182,212,0.12);
+    --color-primary-stroke: #0891b2;
+    --color-secondary-fill: rgba(5,150,105,0.12);
+    --color-secondary-stroke: #059669;
+    --color-tertiary-fill: rgba(124,58,237,0.12);
+    --color-tertiary-stroke: #7c3aed;
+    --color-accent-fill: rgba(217,119,6,0.12);
+    --color-accent-stroke: #d97706;
+    --color-alert-fill: rgba(225,29,72,0.12);
+    --color-alert-stroke: #e11d48;
+    --color-connector-fill: rgba(234,88,12,0.12);
+    --color-connector-stroke: #ea580c;
+    --color-neutral-fill: rgba(100,116,139,0.12);
+    --color-neutral-stroke: #64748b;
+    --color-highlight-fill: rgba(59,130,246,0.12);
+    --color-highlight-stroke: #3b82f6;
+}
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .k { fill: var(--text-muted); font-size: 11px; }
+    .v { fill: var(--text); font-size: 12px; }
+    .m { fill: var(--text); font-size: 11px; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">原语：双方能互相提供什么</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">套路都一样：先用 */list 列出来，再取用或执行。每次现查，所以清单可以随时变化。</text>
+
+  <!-- server side -->
+  <rect x="30" y="85" width="680" height="370" rx="12" fill="none" stroke="var(--color-secondary-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="46" y="106" fill="var(--color-secondary-stroke)" font-size="13" font-weight="700">服务器提供</text>
+
+  <!-- tools -->
+  <rect x="50" y="122" width="205" height="315" rx="10" fill="var(--mask)"/>
+  <rect x="50" y="122" width="205" height="315" rx="10" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.5"/>
+  <text x="152" y="154" fill="var(--text)" font-size="16" font-weight="700" text-anchor="middle">工具 Tools</text>
+  <text x="152" y="176" fill="var(--color-primary-stroke)" font-size="12" text-anchor="middle">能执行的函数</text>
+  <text x="68" y="212" class="k">比喻</text><text x="68" y="232" class="v">供应商帮你办事</text>
+  <text x="68" y="264" class="k">例子</text><text x="68" y="284" class="v">查数据库、调 API、写文件</text>
+  <text x="68" y="316" class="k">谁决定用</text><text x="68" y="336" class="v">模型自己决定调不调</text>
+  <text x="68" y="368" class="k">方法</text><text x="68" y="388" class="m">tools/list</text><text x="68" y="406" class="m">→ tools/call</text>
+
+  <!-- resources -->
+  <rect x="270" y="122" width="205" height="315" rx="10" fill="var(--mask)"/>
+  <rect x="270" y="122" width="205" height="315" rx="10" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.5"/>
+  <text x="372" y="154" fill="var(--text)" font-size="16" font-weight="700" text-anchor="middle">资源 Resources</text>
+  <text x="372" y="176" fill="var(--color-secondary-stroke)" font-size="12" text-anchor="middle">能读的数据</text>
+  <text x="288" y="212" class="k">比喻</text><text x="288" y="232" class="v">供应商给你资料</text>
+  <text x="288" y="264" class="k">例子</text><text x="288" y="284" class="v">文件内容、表结构、记录</text>
+  <text x="288" y="316" class="k">谁决定用</text><text x="288" y="336" class="v">应用或用户决定附加</text>
+  <text x="288" y="368" class="k">方法</text><text x="288" y="388" class="m">resources/list</text><text x="288" y="406" class="m">→ resources/read</text>
+
+  <!-- prompts -->
+  <rect x="490" y="122" width="205" height="315" rx="10" fill="var(--mask)"/>
+  <rect x="490" y="122" width="205" height="315" rx="10" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)" stroke-width="1.5"/>
+  <text x="592" y="154" fill="var(--text)" font-size="16" font-weight="700" text-anchor="middle">提示词模板</text>
+  <text x="592" y="176" fill="var(--color-tertiary-stroke)" font-size="12" text-anchor="middle">Prompts · 可复用的话术</text>
+  <text x="508" y="212" class="k">比喻</text><text x="508" y="232" class="v">供应商给你标准说辞</text>
+  <text x="508" y="264" class="k">例子</text><text x="508" y="284" class="v">系统提示、少样本示例</text>
+  <text x="508" y="316" class="k">谁决定用</text><text x="508" y="336" class="v">用户挑选（如斜杠命令）</text>
+  <text x="508" y="368" class="k">方法</text><text x="508" y="388" class="m">prompts/list</text><text x="508" y="406" class="m">→ prompts/get</text>
+
+  <!-- client side -->
+  <rect x="740" y="85" width="290" height="370" rx="12" fill="none" stroke="var(--color-accent-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="756" y="106" fill="var(--color-accent-stroke)" font-size="13" font-weight="700">客户端提供</text>
+
+  <rect x="760" y="122" width="250" height="315" rx="10" fill="var(--mask)"/>
+  <rect x="760" y="122" width="250" height="315" rx="10" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)" stroke-width="1.5"/>
+  <text x="885" y="154" fill="var(--text)" font-size="16" font-weight="700" text-anchor="middle">征询 Elicitation</text>
+  <text x="885" y="176" fill="var(--color-accent-stroke)" font-size="12" text-anchor="middle">服务器反过来问用户</text>
+  <text x="778" y="212" class="k">例子</text><text x="778" y="232" class="v">“确定要删吗？”“部署到哪？”</text>
+  <text x="778" y="264" class="k">无状态下怎么问</text>
+  <text x="778" y="284" class="v">1. 服务器回复 input_required</text>
+  <text x="778" y="304" class="v">2. 客户端去问用户</text>
+  <text x="778" y="324" class="v">3. 带着答案重发原请求</text>
+  <text x="778" y="344" class="k">（多轮往返，MRTR）</text>
+  <text x="778" y="376" class="k">方法</text><text x="778" y="396" class="m">elicitation/create</text>
+
+  <!-- deprecated strip -->
+  <rect x="30" y="475" width="1000" height="115" rx="10" fill="var(--color-alert-fill)" stroke="var(--color-alert-stroke)" stroke-width="1.2"/>
+  <text x="50" y="500" fill="var(--color-alert-stroke)" font-size="13" font-weight="700">2026-07-28 起已弃用（新实现请改用替代方案）</text>
+  <text x="50" y="526" class="v">根目录 roots</text><text x="200" y="526" class="k">→ 通过工具参数、资源 URI 或服务器配置传目录</text>
+  <text x="50" y="549" class="v">采样 sampling</text><text x="200" y="549" class="k">→ 服务器直接调用大模型 API（协议不再提供替代）</text>
+  <text x="50" y="572" class="v">日志 logging</text><text x="200" y="572" class="k">→ stdio 服务器写 stderr，或用 OpenTelemetry</text>
+  <text x="640" y="526" class="k">另：可选的扩展建立在核心协议之上，</text>
+  <text x="640" y="549" class="k">如 Tasks 扩展：长任务先给“取件号”，</text>
+  <text x="640" y="572" class="k">客户端稍后凭号查进度、取结果。</text>
+</svg>

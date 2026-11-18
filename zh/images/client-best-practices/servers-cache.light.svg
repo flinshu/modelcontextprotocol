@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 640">
+  <style>
+    :root {
+    --bg: #f8fafc;
+    --bg-grid: #e2e8f0;
+    --mask: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --arrow: #64748b;
+    --color-primary-fill: rgba(6,182,212,0.12);
+    --color-primary-stroke: #0891b2;
+    --color-secondary-fill: rgba(5,150,105,0.12);
+    --color-secondary-stroke: #059669;
+    --color-tertiary-fill: rgba(124,58,237,0.12);
+    --color-tertiary-stroke: #7c3aed;
+    --color-accent-fill: rgba(217,119,6,0.12);
+    --color-accent-stroke: #d97706;
+    --color-alert-fill: rgba(225,29,72,0.12);
+    --color-alert-stroke: #e11d48;
+    --color-connector-fill: rgba(234,88,12,0.12);
+    --color-connector-stroke: #ea580c;
+    --color-neutral-fill: rgba(100,116,139,0.12);
+    --color-neutral-stroke: #64748b;
+    --color-highlight-fill: rgba(59,130,246,0.12);
+    --color-highlight-stroke: #3b82f6;
+}
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .h { fill: var(--text); font-size: 14px; font-weight: 700; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+    .c { fill: var(--text); font-size: 11px; }
+    .st { fill: var(--color-highlight-stroke); font-size: 12px; font-weight: 700; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--arrow)"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">按需连接服务器，以及别把缓存弄丢</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">渐进式发现不只用于单个工具，也可以用于整个服务器：要用时才连，用完就断</text>
+
+  <!-- dynamic servers -->
+  <rect x="30" y="85" width="1020" height="235" rx="12" fill="none" stroke="var(--color-primary-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="46" y="108" fill="var(--color-primary-stroke)" font-size="13" font-weight="700">动态管理服务器（例：用户提到 CRM）</text>
+
+  <rect x="50" y="126" width="170" height="70" rx="8" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)"/>
+  <text x="135" y="154" class="h" text-anchor="middle">模型</text>
+  <text x="135" y="176" class="d" text-anchor="middle">发现需要 CRM</text>
+  <rect x="300" y="126" width="200" height="70" rx="8" fill="var(--color-highlight-fill)" stroke="var(--color-highlight-stroke)"/>
+  <text x="400" y="154" class="h" text-anchor="middle">宿主</text>
+  <text x="400" y="176" class="d" text-anchor="middle">只常驻少数几个服务器</text>
+  <rect x="580" y="126" width="190" height="70" rx="8" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="675" y="154" class="h" text-anchor="middle">服务器注册表</text>
+  <text x="675" y="176" class="d" text-anchor="middle">名字 + 一句话简介</text>
+  <rect x="850" y="126" width="180" height="70" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)"/>
+  <text x="940" y="154" class="h" text-anchor="middle">Salesforce</text>
+  <text x="940" y="176" class="d" text-anchor="middle">一开始没连接</text>
+
+  <line x1="220" y1="161" x2="296" y2="161" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="500" y1="161" x2="576" y2="161" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M 400,196 L 400,214 L 940,214 L 940,200" fill="none" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <text x="50" y="242" class="st">1 查</text><text x="100" y="242" class="c">search_available_servers("CRM") → 注册表说有 Salesforce，还没连</text>
+  <text x="50" y="264" class="st">2 连</text><text x="100" y="264" class="c">enable_server("salesforce") → 宿主 server/discover、tools/list，把工具交给模型</text>
+  <text x="50" y="286" class="st">3 断</text><text x="100" y="286" class="c">任务完成 → disable_server("salesforce")，腾出上下文</text>
+  <text x="50" y="308" class="d">特别适合通用 Agent：事先不知道用户要干什么。配合 Agent Skills，一个 Skill 可以声明自己要哪些服务器，用到这个 Skill 时才连接。</text>
+
+  <!-- caching -->
+  <rect x="30" y="340" width="500" height="280" rx="12" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)" stroke-width="1.2"/>
+  <text x="50" y="366" fill="var(--color-accent-stroke)" font-size="14" font-weight="700">遵守协议的缓存提示</text>
+  <text x="50" y="392" class="c">tools/list 等列表结果、server/discover、</text>
+  <text x="50" y="410" class="c">resources/read 都带 ttlMs 和 cacheScope</text>
+  <text x="50" y="440" class="d">按规范的缓存规则用；</text>
+  <text x="50" y="460" class="c">一收到 list_changed，缓存的列表就算过期，</text>
+  <text x="50" y="478" class="c">哪怕 TTL 还没到</text>
+  <text x="50" y="512" class="d">另外：工具定义取回来后在宿主里记住，</text>
+  <text x="50" y="530" class="d">再放回上下文时不必重新 tools/list；</text>
+  <text x="50" y="548" class="d">工具按来源服务器分组展示，</text>
+  <text x="50" y="566" class="d">让模型看出哪些能力是相关的。</text>
+
+  <!-- prompt caching -->
+  <rect x="550" y="340" width="500" height="280" rx="12" fill="var(--color-alert-fill)" stroke="var(--color-alert-stroke)" stroke-width="1.2"/>
+  <text x="570" y="366" fill="var(--color-alert-stroke)" font-size="14" font-weight="700">小心弄丢模型厂商的提示词缓存</text>
+  <text x="570" y="392" class="c">厂商会缓存提示词的开头部分，包括 tools 数组。</text>
+  <text x="570" y="410" class="c">对话中途增删工具，缓存就失效了，</text>
+  <text x="570" y="428" class="c">多花的 token 可能比省下的还多。</text>
+  <text x="570" y="456" class="d">比喻：背熟的开场白，改一下顺序就得重背</text>
+  <text x="570" y="488" class="c">· 新发现的定义追加在缓存断点之后，不要重排</text>
+  <text x="570" y="510" class="c">· 或者只给一个固定的 call_tool({name, args})，</text>
+  <text x="570" y="528" class="c">  tools 数组从头到尾不变</text>
+  <text x="570" y="556" class="c">· 断开服务器放在对话边界做，不要每轮都断</text>
+  <text x="570" y="590" class="d">同时参考你所用厂商的缓存文档</text>
+</svg>

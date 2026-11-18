@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 680">
+  <style>
+    :root {
+      --bg: #0f172a; --bg-grid: #1e293b; --mask: #0f172a; --text: white; --text-muted: #94a3b8; --arrow: #64748b;
+      --color-primary-fill: rgba(8,51,68,0.4); --color-primary-stroke: #22d3ee;
+      --color-secondary-fill: rgba(6,78,59,0.4); --color-secondary-stroke: #34d399;
+      --color-tertiary-fill: rgba(76,29,149,0.4); --color-tertiary-stroke: #a78bfa;
+      --color-accent-fill: rgba(120,53,15,0.3); --color-accent-stroke: #fbbf24;
+      --color-alert-fill: rgba(136,19,55,0.4); --color-alert-stroke: #fb7185;
+      --color-neutral-fill: rgba(30,41,59,0.5); --color-neutral-stroke: #94a3b8;
+      --color-highlight-fill: rgba(59,130,246,0.3); --color-highlight-stroke: #60a5fa;
+    }
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .h { fill: var(--text); font-size: 14px; font-weight: 700; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+    .c { fill: var(--text); font-size: 11px; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--color-highlight-stroke)"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">渐进式发现：工具说明书用到才拿出来</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">比喻：去图书馆不必把所有书搬上桌。先翻目录卡片，挑中一本再借出来细看，最后才用它</text>
+
+  <!-- before -->
+  <rect x="30" y="85" width="500" height="250" rx="12" fill="var(--color-alert-fill)" stroke="var(--color-alert-stroke)" stroke-width="1.3"/>
+  <text x="50" y="112" fill="var(--color-alert-stroke)" font-size="14" font-weight="700">一开始全塞进去</text>
+  <text x="50" y="132" class="d">几十个服务器、几百个工具的定义，对话一开始就全给模型</text>
+  <rect x="50" y="148" width="460" height="40" rx="6" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <rect x="52" y="150" width="400" height="36" rx="5" fill="var(--color-alert-stroke)" fill-opacity="0.35"/>
+  <text x="250" y="173" class="c" text-anchor="middle">工具定义 ≈ 150,000 token</text>
+  <text x="482" y="173" class="d" text-anchor="middle">对话</text>
+  <text x="50" y="214" class="c">· 用户的话还没读，上下文已经被占掉大半</text>
+  <text x="50" y="236" class="c">· 浪费 token、变慢</text>
+  <text x="50" y="258" class="c">· 几百个工具里挑一个，模型更容易挑错</text>
+  <text x="50" y="300" class="d">工具少时这样做完全没问题；</text>
+  <text x="50" y="318" class="d">原文建议：定义占到上下文的 1%–5% 时就该切换</text>
+
+  <!-- after -->
+  <rect x="550" y="85" width="500" height="250" rx="12" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.3"/>
+  <text x="570" y="112" fill="var(--color-secondary-stroke)" font-size="14" font-weight="700">按需发现</text>
+  <text x="570" y="132" class="d">宿主照常 tools/list 拿到全部定义，但先不放进上下文</text>
+  <rect x="570" y="148" width="460" height="40" rx="6" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <rect x="572" y="150" width="34" height="36" rx="5" fill="var(--color-secondary-stroke)" fill-opacity="0.45"/>
+  <text x="820" y="173" class="c" text-anchor="middle">≈ 2,000 token 就够，其余都留给对话</text>
+  <text x="570" y="214" class="c">· 只给模型一个轻量的 search_tools</text>
+  <text x="570" y="236" class="c">· 需要哪个工具，再把它的完整定义加载进来</text>
+  <text x="570" y="258" class="c">· 模型只盯着几个相关工具，选得更准</text>
+  <text x="570" y="300" class="d">定义缓存在宿主里，下次再加载不用重新 tools/list；</text>
+  <text x="570" y="318" class="d">收到 list_changed 时重建搜索目录</text>
+
+  <!-- three layers -->
+  <text x="30" y="372" fill="var(--text)" font-size="14" font-weight="700">常见做法：三层</text>
+  <rect x="30" y="386" width="320" height="150" rx="10" fill="var(--mask)"/>
+  <rect x="30" y="386" width="320" height="150" rx="10" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)" stroke-width="1.3"/>
+  <text x="50" y="414" class="h">① 目录 Catalog</text>
+  <text x="50" y="438" class="c">search_tools({query: "update</text>
+  <text x="50" y="456" class="c">  salesforce record"})</text>
+  <text x="50" y="482" class="d">只返回名字 + 一句话描述：</text>
+  <text x="50" y="500" class="c">salesforce_updateRecord</text>
+  <text x="50" y="518" class="c">salesforce_upsertRecord</text>
+
+  <rect x="380" y="386" width="320" height="150" rx="10" fill="var(--mask)"/>
+  <rect x="380" y="386" width="320" height="150" rx="10" fill="var(--color-tertiary-fill)" stroke="var(--color-tertiary-stroke)" stroke-width="1.3"/>
+  <text x="400" y="414" class="h">② 查看 Inspect</text>
+  <text x="400" y="438" class="c">get_tool_details({name:</text>
+  <text x="400" y="456" class="c">  "salesforce_updateRecord"})</text>
+  <text x="400" y="482" class="d">只取这一个工具的完整定义：</text>
+  <text x="400" y="500" class="c">inputSchema、outputSchema、说明</text>
+
+  <rect x="730" y="386" width="320" height="150" rx="10" fill="var(--mask)"/>
+  <rect x="730" y="386" width="320" height="150" rx="10" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.3"/>
+  <text x="750" y="414" class="h">③ 执行 Execute</text>
+  <text x="750" y="438" class="c">清楚参数后，正常调用这个工具</text>
+  <text x="750" y="464" class="d">全程只加载了真正用到的定义</text>
+
+  <line x1="350" y1="461" x2="376" y2="461" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="700" y1="461" x2="726" y2="461" stroke="var(--color-highlight-stroke)" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- strategies -->
+  <rect x="30" y="556" width="1020" height="104" rx="10" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="48" y="580" fill="var(--text)" font-size="13" font-weight="700">search_tools 怎么搜：四种策略（目录这一层可替换，三层的思路不变）</text>
+  <text x="48" y="604" class="c">关键词</text><text x="120" y="604" class="d">BM25、正则；简单有效，工具名和描述写得好时尤其好用</text>
+  <text x="560" y="604" class="c">向量</text><text x="620" y="604" class="d">按描述的语义相似度检索，能处理同义词</text>
+  <text x="48" y="626" class="c">子代理</text><text x="120" y="626" class="d">让一个又小又快的模型来挑；效果好但更贵</text>
+  <text x="560" y="626" class="c">混合</text><text x="620" y="626" class="d">综合几种排名，或按场景切换</text>
+  <text x="48" y="648" class="d">模型厂商自带工具搜索时（如 OpenAI、Anthropic）可以优先用；需要自定义排序、按权限过滤时再自己实现。</text>
+</svg>

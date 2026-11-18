@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 660">
+  <style>
+    :root {
+    --bg: #f8fafc;
+    --bg-grid: #e2e8f0;
+    --mask: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --arrow: #64748b;
+    --color-primary-fill: rgba(6,182,212,0.12);
+    --color-primary-stroke: #0891b2;
+    --color-secondary-fill: rgba(5,150,105,0.12);
+    --color-secondary-stroke: #059669;
+    --color-tertiary-fill: rgba(124,58,237,0.12);
+    --color-tertiary-stroke: #7c3aed;
+    --color-accent-fill: rgba(217,119,6,0.12);
+    --color-accent-stroke: #d97706;
+    --color-alert-fill: rgba(225,29,72,0.12);
+    --color-alert-stroke: #e11d48;
+    --color-connector-fill: rgba(234,88,12,0.12);
+    --color-connector-stroke: #ea580c;
+    --color-neutral-fill: rgba(100,116,139,0.12);
+    --color-neutral-stroke: #64748b;
+    --color-highlight-fill: rgba(59,130,246,0.12);
+    --color-highlight-stroke: #3b82f6;
+}
+    text { font-family: 'JetBrains Mono', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+    .h { fill: var(--text); font-size: 14px; font-weight: 700; }
+    .f { fill: var(--text); font-size: 12px; font-weight: 600; }
+    .d { fill: var(--text-muted); font-size: 11px; }
+    .c { fill: var(--text); font-size: 11px; }
+  </style>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--bg-grid)" stroke-width="0.5"/>
+    </pattern>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--arrow)"/></marker>
+    <marker id="a-n" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polyline points="0 0, 10 3.5, 0 7" fill="none" stroke="var(--color-accent-stroke)" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="var(--bg)"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="40" fill="var(--text)" font-size="18" font-weight="700">资源：用 URI 找到资料，按需读取，变了再通知</text>
+  <text x="30" y="62" fill="var(--text-muted)" font-size="12">每个资源都有唯一的 URI，可以声明 MIME 类型；读回来怎么用（挑一部分、检索、整份交给模型）由应用决定</text>
+
+  <!-- panel A: discovery -->
+  <rect x="30" y="85" width="1020" height="190" rx="12" fill="none" stroke="var(--color-secondary-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="46" y="108" fill="var(--color-secondary-stroke)" font-size="13" font-weight="700">① 两种发现方式</text>
+
+  <rect x="50" y="122" width="460" height="134" rx="8" fill="var(--mask)"/>
+  <rect x="50" y="122" width="460" height="134" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.2"/>
+  <text x="68" y="146" class="h">直接资源</text>
+  <text x="140" y="146" class="d">固定 URI，指向具体数据 · resources/list</text>
+  <rect x="68" y="160" width="424" height="32" rx="6" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="80" y="181" class="c">calendar://events/2027-06</text>
+  <text x="68" y="216" class="d">比喻：书架上贴好标签的一本书，拿来就能读</text>
+  <text x="68" y="238" class="d">例：2027 年 6 月的日历空闲情况</text>
+
+  <rect x="530" y="122" width="500" height="134" rx="8" fill="var(--mask)"/>
+  <rect x="530" y="122" width="500" height="134" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)" stroke-width="1.2"/>
+  <text x="548" y="146" class="h">资源模板</text>
+  <text x="620" y="146" class="d">带参数的 URI · resources/templates/list</text>
+  <rect x="548" y="160" width="220" height="32" rx="6" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="560" y="181" class="c">travel://activities/{city}/{category}</text>
+  <line x1="772" y1="176" x2="800" y2="176" stroke="var(--arrow)" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="804" y="160" width="210" height="32" rx="6" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="816" y="181" class="c">…/Barcelona/museums</text>
+  <text x="548" y="216" class="d">比喻：填空题。填上城市和类别，就得到一个具体资源</text>
+  <text x="548" y="238" class="d">模板自带标题、说明和 MIME 类型，自己就是说明书</text>
+
+  <!-- panel B: completion -->
+  <rect x="30" y="295" width="510" height="300" rx="12" fill="none" stroke="var(--color-highlight-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="46" y="318" fill="var(--color-highlight-stroke)" font-size="13" font-weight="700">② 参数补全 completion/complete</text>
+  <text x="46" y="340" class="d">模板：travel://flights/{origin}/{destination}</text>
+
+  <rect x="50" y="356" width="220" height="56" rx="8" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="66" y="378" class="f">origin 已选：JFK</text>
+  <text x="66" y="398" class="d">（纽约肯尼迪机场）</text>
+  <rect x="300" y="356" width="220" height="56" rx="8" fill="var(--color-highlight-fill)" stroke="var(--color-highlight-stroke)"/>
+  <text x="316" y="378" class="f">destination 正在输入</text>
+  <text x="316" y="398" class="c">"Bar" ▍</text>
+
+  <rect x="50" y="428" width="470" height="62" rx="8" fill="var(--mask)"/>
+  <rect x="50" y="428" width="470" height="62" rx="8" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)"/>
+  <text x="66" y="450" class="f">请求带上已经定好的参数</text>
+  <text x="66" y="472" class="c">argument: destination="Bar" · context.arguments: {origin: "JFK"}</text>
+
+  <rect x="50" y="506" width="470" height="70" rx="8" fill="var(--mask)"/>
+  <rect x="50" y="506" width="470" height="70" rx="8" fill="var(--color-secondary-fill)" stroke="var(--color-secondary-stroke)"/>
+  <text x="66" y="528" class="f">服务器缩小范围后建议</text>
+  <text x="66" y="550" class="c">["BCN", "BGI"]  巴塞罗那 · 巴巴多斯（都有从 JFK 出发的航班）</text>
+  <text x="66" y="568" class="d">服务器要声明 completions 能力；提示词模板的参数也能这样补全</text>
+
+  <!-- panel C: read + subscribe -->
+  <rect x="560" y="295" width="490" height="300" rx="12" fill="none" stroke="var(--color-accent-stroke)" stroke-width="1" stroke-dasharray="8,4"/>
+  <text x="576" y="318" fill="var(--color-accent-stroke)" font-size="13" font-weight="700">③ 读取、缓存与订阅</text>
+
+  <rect x="580" y="334" width="450" height="112" rx="8" fill="var(--mask)"/>
+  <rect x="580" y="334" width="450" height="112" rx="8" fill="var(--color-neutral-fill)" stroke="var(--color-neutral-stroke)"/>
+  <text x="596" y="356" class="f">resources/read  uri="calendar://events/2027-06"</text>
+  <text x="596" y="378" class="c">contents: [{ mimeType: "application/json", text: … }]</text>
+  <text x="596" y="400" class="c">ttlMs: 60000</text><text x="700" y="400" class="d">→ 1 分钟内都算新鲜，可直接用缓存</text>
+  <text x="596" y="422" class="c">cacheScope: "private"</text><text x="764" y="422" class="d">→ 不能跨授权上下文共享</text>
+
+  <rect x="580" y="462" width="450" height="56" rx="8" fill="var(--mask)"/>
+  <rect x="580" y="462" width="450" height="56" rx="8" fill="var(--color-primary-fill)" stroke="var(--color-primary-stroke)"/>
+  <text x="596" y="484" class="f">subscriptions/listen</text>
+  <text x="596" y="504" class="c">resourceSubscriptions: ["calendar://events/2027-06"]</text>
+  <line x1="805" y1="522" x2="805" y2="540" stroke="var(--color-accent-stroke)" stroke-width="1.5" stroke-dasharray="2,3" marker-end="url(#a-n)"/>
+  <rect x="580" y="544" width="450" height="36" rx="8" fill="var(--color-accent-fill)" stroke="var(--color-accent-stroke)"/>
+  <text x="596" y="567" class="c">资源一变 → notifications/resources/updated</text>
+
+  <text x="30" y="625" fill="var(--text-muted)" font-size="12">订阅单个资源要服务器在 resources 能力里声明 "subscribe": true；界面上常见资源树、搜索、自动附加等，协议不规定具体样式。</text>
+  <text x="30" y="645" fill="var(--text-muted)" font-size="12">协议方法：resources/list · resources/templates/list · resources/read · completion/complete · subscriptions/listen</text>
+</svg>
