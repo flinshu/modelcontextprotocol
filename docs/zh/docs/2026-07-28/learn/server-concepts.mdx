@@ -1,0 +1,585 @@
+---
+title: 理解 MCP 服务器
+sidebarTitle: 服务器
+---
+
+<Info>
+  本页是社区维护的**非官方**中文译文，不代表 MCP 官方。原文：Model Context Protocol 项目的[英文页面](https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts)（上游提交 `ac00313f`），© Model Context Protocol a Series of LF Projects, LLC.，按 [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) 授权。本页由原文翻译成中文，并按同一许可发布。如有出入，以英文原文为准。
+</Info>
+
+MCP 服务器是通过标准化的协议接口，向 AI 应用暴露特定能力的程序。
+
+常见的例子有：用于访问文档的文件系统服务器、用于查询数据的数据库服务器、用于管理代码的 GitHub 服务器、用于团队沟通的 Slack 服务器，以及用于安排日程的日历服务器。
+
+<a id="core-server-features" />
+## 服务器的核心功能
+
+服务器通过三种基本构件提供功能：
+
+| 功能 | 说明 | 示例 | 由谁控制 |
+| --- | --- | --- | --- |
+| **工具** | LLM 可以主动调用的函数，由模型根据用户请求决定何时使用。工具可以写入数据库、调用外部 API、修改文件或触发其他逻辑。 | 搜索航班<br />发送消息<br />创建日历事件 | 模型 |
+| **资源** | 被动的数据源，以只读方式提供信息作为上下文，例如文件内容、数据库模式（schema）或 API 文档。 | 获取文档<br />访问知识库<br />读取日历 | 应用 |
+| **提示词模板** | 预先写好的指令模板，告诉模型如何配合特定的工具和资源工作。 | 规划假期<br />总结我的会议<br />起草邮件 | 用户 |
+
+下面我们用一个假想的场景来演示这几种功能各自的作用，以及它们如何协同工作。带有 `jsonrpc` 字段的示例是完整的消息，其余的是节选。
+
+每个请求都在 `_meta` 中携带[协议版本和客户端能力](/zh/docs/2026-07-28/learn/architecture#statelessness-and-discovery)，每个结果都带有 [`resultType`](/specification/2026-07-28/basic/index#responses)。
+
+<a id="tools" />
+### 工具
+
+工具让 AI 模型能够执行操作。每个工具定义一项具体操作，输入和输出都有类型。模型根据上下文请求执行工具。
+
+<a id="how-tools-work" />
+#### 工具如何运作
+
+工具是由模式（schema）定义、可供 LLM 调用的接口。MCP 使用 JSON Schema 做校验。每个工具只执行一项操作，输入和输出都有明确定义。工具在执行前可能需要征得用户同意，以确保用户始终掌控模型所执行的操作。
+
+**协议操作：**
+
+| 方法 | 用途 | 返回 |
+| --- | --- | --- |
+| `tools/list` | 发现可用的工具 | 工具定义数组，含模式（schema） |
+| `tools/call` | 执行某个工具 | 工具执行结果 |
+
+**工具定义示例（`tools/list` 返回的样子）：**
+
+```json
+{
+  "name": "searchFlights",
+  "title": "Search Flights",
+  "description": "Search for available flights",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "origin": { "type": "string", "description": "Departure city" },
+      "destination": { "type": "string", "description": "Arrival city" },
+      "date": {
+        "type": "string",
+        "format": "date",
+        "description": "Travel date"
+      }
+    },
+    "required": ["origin", "destination", "date"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "flights": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "flightNumber": { "type": "string" },
+            "priceUsd": { "type": "number" }
+          },
+          "required": ["flightNumber", "priceUsd"]
+        }
+      }
+    },
+    "required": ["flights"]
+  }
+}
+```
+
+<a id="example-travel-booking" />
+#### 示例：旅行预订
+
+工具让 AI 应用能够代表用户执行操作。在旅行规划的场景中，AI 应用可能会用到几个工具来帮忙预订假期：
+
+**航班搜索**
+
+查询多家航空公司，返回结构化的航班选项。`tools/call` 请求中的参数符合该工具的 `inputSchema`：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "searchFlights",
+    "arguments": {
+      "origin": "New York",
+      "destination": "Barcelona",
+      "date": "2027-06-15"
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": { "elicitation": {} }
+    }
+  }
+}
+```
+
+结果中的 `structuredContent` 符合该工具的 `outputSchema`。为了向后兼容，结果还会以文本形式附上序列化后的 JSON：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "resultType": "complete",
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"flights\":[{\"flightNumber\":\"EX101\",\"priceUsd\":640}]}"
+      }
+    ],
+    "structuredContent": {
+      "flights": [{ "flightNumber": "EX101", "priceUsd": 640 }]
+    },
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "travel-server",
+        "version": "1.0.0"
+      }
+    }
+  }
+}
+```
+
+其他工具也是同样的调用方式，只是 `name` 和 `arguments` 不同。
+
+**日历占用**
+
+在用户的日历上标出旅行日期。
+
+```json
+{
+  "name": "createCalendarEvent",
+  "arguments": {
+    "title": "Barcelona Trip",
+    "startDate": "2027-06-15",
+    "endDate": "2027-06-22"
+  }
+}
+```
+
+**邮件通知**
+
+自动给同事发送一封外出通知邮件。
+
+```json
+{
+  "name": "sendEmail",
+  "arguments": {
+    "to": "team@example.com",
+    "subject": "Out of Office",
+    "body": "I am out of the office from June 15 to June 22."
+  }
+}
+```
+
+<a id="user-interaction-model" />
+#### 用户交互模型
+
+工具由模型控制，也就是说 AI 模型可以自动发现并调用它们。不过，MCP 通过多种机制强调人的监督。
+
+出于信任与安全的考虑，应用可以通过多种机制让用户保持控制，例如：
+
+- 在界面中展示可用的工具，让用户决定某个工具是否在特定交互中可用
+- 为每一次工具执行弹出确认对话框
+- 通过权限设置，预先批准某些安全的操作
+- 用活动日志展示所有工具执行及其结果
+
+<a id="resources" />
+### 资源
+
+资源以结构化的方式提供信息，AI 应用可以获取这些信息，再作为上下文提供给模型。
+
+<a id="how-resources-work" />
+#### 资源如何运作
+
+资源暴露来自文件、API、数据库或其他任何来源的数据，供 AI 理解上下文。应用可以直接访问这些信息，并决定如何使用：挑出相关的部分、用向量嵌入（embedding）搜索，或者全部交给模型。
+
+每个资源都有一个唯一的 URI（例如 `file:///path/to/document.md`），并可以声明自己的 MIME 类型，以便正确处理内容。
+
+资源支持两种发现方式：
+
+- **直接资源**：指向特定数据的固定 URI。例如：`calendar://events/2027-06`，返回 2027 年 6 月的日历空闲情况
+- **资源模板**：带参数的 URI，用于灵活查询。例如：`travel://activities/{city}/{category}`，按城市和类别返回活动。比如 `travel://activities/Barcelona/museums` 返回巴塞罗那的所有博物馆
+
+资源模板可以包含标题、描述和预期 MIME 类型等元数据，因此既便于发现，也能自我说明。
+
+**协议操作：**
+
+| 方法 | 用途 | 返回 |
+| --- | --- | --- |
+| `resources/list` | 列出可用的直接资源 | 资源描述符数组 |
+| `resources/templates/list` | 发现资源模板 | 资源模板定义数组 |
+| `resources/read` | 获取资源内容 | 资源数据及元数据 |
+| `completion/complete` | 建议参数取值 | 建议值数组 |
+| `subscriptions/listen` | 监视资源变化 | 更新通知流 |
+
+要监视特定资源的变化，客户端发送一个 [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) 请求，在 `resourceSubscriptions` 过滤条件中列出资源 URI。支持单个资源更新通知的服务器，会在其 `resources` 能力中声明 `"subscribe": true`。每当被监视的资源发生变化，服务器就会在由此打开的流上推送 `notifications/resources/updated`。
+
+<a id="example-getting-travel-planning-context" />
+#### 示例：获取旅行规划的上下文
+
+继续旅行规划的例子，资源让 AI 应用能够访问相关信息：
+
+- **日历数据**（`calendar://events/2027-06`）：查看用户哪天有空
+- **旅行证件**（`file:///Documents/Travel/passport.pdf`）：访问重要证件
+- **旅行偏好**（`travel://preferences/europe`）：查询偏好的航空公司和酒店类型
+- **过往行程**（`travel://past-trips/spain-2023`）：参考以前的旅行
+- **天气预报**（`weather://forecast/Barcelona/2027-06-15`）：查询出行日期的天气
+
+AI 应用获取这些资源后，自行决定如何处理：可以用向量嵌入或关键词搜索挑出一部分数据，也可以把原始数据直接交给模型。
+
+在这个例子中，它把日历数据、天气信息、旅行偏好和过往行程提供给模型，让模型能够查看空闲时间、了解天气情况，并遵循用户的偏好。
+
+AI 应用通过 `resources/read` 请求读取每个资源：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "resources/read",
+  "params": {
+    "uri": "calendar://events/2027-06",
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": {}
+      }
+    }
+  }
+}
+```
+
+结果包含资源内容和两个[缓存提示](/specification/2026-07-28/server/utilities/caching)。`ttlMs` 表示客户端可以把结果视为新鲜的时长（毫秒）；`cacheScope` 为 `"private"` 表示缓存不得在不同的授权上下文之间共享这个结果：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "resultType": "complete",
+    "contents": [
+      {
+        "uri": "calendar://events/2027-06",
+        "mimeType": "application/json",
+        "text": "{\"busy\":[{\"startDate\":\"2027-06-03\",\"endDate\":\"2027-06-04\"}]}"
+      }
+    ],
+    "ttlMs": 60000,
+    "cacheScope": "private",
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "calendar-email-server",
+        "version": "1.0.0"
+      }
+    }
+  }
+}
+```
+
+**资源模板示例：**
+
+来自天气服务器：
+
+```json
+{
+  "uriTemplate": "weather://forecast/{city}/{date}",
+  "name": "weather-forecast",
+  "title": "Weather Forecast",
+  "description": "Get weather forecast for any city and date",
+  "mimeType": "application/json"
+}
+```
+
+来自旅行服务器：
+
+```json
+{
+  "uriTemplate": "travel://flights/{origin}/{destination}",
+  "name": "flight-search",
+  "title": "Flight Search",
+  "description": "Search available flights between two airports",
+  "mimeType": "application/json"
+}
+```
+
+这些模板支持灵活的查询。天气数据方面，用户可以查询任意城市和日期组合的预报；航班方面，可以搜索任意两个机场之间的航线。
+
+<a id="parameter-completion" />
+#### 参数补全
+
+声明了 `completions` 能力的服务器，可以为模板参数建议取值。例如：
+
+- 在 `weather://forecast/{city}/{date}` 的 `city` 中输入 "Par"，可能会建议 "Paris" 或 "Park City"
+- 在 `travel://flights/{origin}/{destination}` 的 `origin` 中输入 "JF"，可能会建议 "JFK"
+
+当模板有多个参数时，客户端应当把已经确定的值放进 `context.arguments`，让服务器能缩小建议范围。这里用户已经选了 `JFK` 作为 `origin`，并在 `destination` 中输入了 "Bar"：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "completion/complete",
+  "params": {
+    "ref": {
+      "type": "ref/resource",
+      "uri": "travel://flights/{origin}/{destination}"
+    },
+    "argument": {
+      "name": "destination",
+      "value": "Bar"
+    },
+    "context": {
+      "arguments": {
+        "origin": "JFK"
+      }
+    },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientInfo": {
+        "name": "example-client",
+        "version": "1.0.0"
+      },
+      "io.modelcontextprotocol/clientCapabilities": { "elicitation": {} }
+    }
+  }
+}
+```
+
+服务器建议了巴塞罗那和巴巴多斯的机场代码，这两个地方都有从 JFK 出发的航班：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "resultType": "complete",
+    "completion": {
+      "values": ["BCN", "BGI"],
+      "total": 2,
+      "hasMore": false
+    },
+    "_meta": {
+      "io.modelcontextprotocol/serverInfo": {
+        "name": "travel-server",
+        "version": "1.0.0"
+      }
+    }
+  }
+}
+```
+
+这样无需事先知道确切格式，也能找到有效的取值。
+
+<a id="user-interaction-model-1" />
+#### 用户交互模型
+
+资源由应用驱动，因此应用在如何获取、处理和呈现可用上下文方面有很大的灵活性。常见的交互方式包括：
+
+- 用树形或列表视图浏览资源，结构类似熟悉的文件夹
+- 用搜索和筛选界面查找特定资源
+- 根据启发式规则或 AI 的选择，自动纳入上下文或给出智能建议
+- 用手动或批量选择界面纳入一个或多个资源
+
+应用可以用任何适合自身需求的界面方式实现资源发现。协议不规定具体的界面形式，因此可以做成带预览功能的资源选择器、根据当前对话上下文给出的智能建议、一次纳入多个资源的批量选择，或者与现有的文件浏览器和数据浏览器集成。
+
+<a id="prompts" />
+### 提示词模板
+
+提示词模板（Prompts）提供可复用的模板。MCP 服务器的作者可以借此为某个领域提供带参数的提示词，或者示范如何用好这个 MCP 服务器。
+
+<a id="how-prompts-work" />
+#### 提示词模板如何运作
+
+提示词模板是结构化的模板，定义了预期的输入和交互方式。它们由用户控制，需要用户明确调用，而不是自动触发。提示词模板可以感知上下文，引用可用的资源和工具，组成完整的工作流程。与资源类似，提示词模板也支持参数补全，帮助用户找到有效的参数值。
+
+**协议操作：**
+
+| 方法 | 用途 | 返回 |
+| --- | --- | --- |
+| `prompts/list` | 发现可用的提示词模板 | 提示词模板定义数组，包括每个模板接受的参数 |
+| `prompts/get` | 获取某个提示词模板 | 提示消息数组 |
+| `completion/complete` | 建议参数取值 | 建议值数组 |
+
+<a id="example-streamlined-workflows" />
+#### 示例：简化工作流程
+
+提示词模板为常见任务提供结构化的模板。在旅行规划的场景中：
+
+**"Plan a vacation"（规划假期）提示词模板（`prompts/list` 返回的样子）：**
+
+```json
+{
+  "name": "plan-vacation",
+  "title": "Plan a vacation",
+  "description": "Guide through vacation planning process",
+  "arguments": [
+    {
+      "name": "origin",
+      "description": "City to depart from",
+      "required": true
+    },
+    {
+      "name": "destination",
+      "description": "City to visit",
+      "required": true
+    },
+    {
+      "name": "departureDate",
+      "description": "First day of the trip, as YYYY-MM-DD",
+      "required": true
+    },
+    {
+      "name": "returnDate",
+      "description": "Last day of the trip, as YYYY-MM-DD",
+      "required": true
+    },
+    {
+      "name": "budget",
+      "description": "Total budget in USD",
+      "required": false
+    },
+    {
+      "name": "travelers",
+      "description": "Number of travelers",
+      "required": false
+    },
+    {
+      "name": "interests",
+      "description": "Comma-separated list of interests"
+    }
+  ]
+}
+```
+
+提示词模板的参数没有类型，所有值都以字符串发送，所以要用 `description` 说明预期的格式。除非 `required` 为 `true`，否则参数都是可选的。
+
+相比不成结构的自然语言输入，提示词模板系统可以做到：
+
+1. 选择 "Plan a vacation" 模板
+2. 结构化的输入：纽约到巴塞罗那，6 月 15 日至 22 日，预算 3000 美元，2 位旅客，对海滩、建筑和美食感兴趣
+3. 基于模板一致地执行工作流程
+
+<a id="user-interaction-model-2" />
+#### 用户交互模型
+
+提示词模板由用户控制，需要用户明确调用。协议让实现者可以自由设计在自己应用中感觉自然的界面。关键原则包括：
+
+- 容易发现有哪些可用的提示词模板
+- 清楚说明每个提示词模板做什么
+- 自然的参数输入，并带有校验
+- 透明地展示提示词模板背后的模板内容
+
+应用通常通过多种界面方式暴露提示词模板，例如：
+
+- 斜杠命令（输入 "/" 查看可用的提示词模板，例如 /plan-vacation）
+- 可搜索的命令面板
+- 为常用提示词模板设置专门的界面按钮
+- 推荐相关提示词模板的右键菜单
+
+<a id="bringing-servers-together" />
+## 让多个服务器协同工作
+
+MCP 真正的威力，在于多个服务器协同工作，通过统一的接口把各自的专长能力组合起来。
+
+<a id="example-multi-server-travel-planning" />
+### 示例：多服务器旅行规划
+
+设想一个个性化的 AI 旅行规划应用，连接了三个服务器：
+
+- **旅行服务器**：处理航班、酒店和行程
+- **天气服务器**：提供气候数据和天气预报
+- **日历/邮件服务器**：管理日程和通信
+
+<a id="the-complete-flow" />
+#### 完整流程
+
+1. **用户带参数调用一个提示词模板：**
+
+   用户选择 "Plan a vacation" 并填写参数。客户端向旅行服务器发送 `prompts/get` 请求：
+
+   ```json
+   {
+     "jsonrpc": "2.0",
+     "id": 4,
+     "method": "prompts/get",
+     "params": {
+       "name": "plan-vacation",
+       "arguments": {
+         "origin": "New York",
+         "destination": "Barcelona",
+         "departureDate": "2027-06-15",
+         "returnDate": "2027-06-22",
+         "budget": "3000",
+         "travelers": "2",
+         "interests": "beaches, architecture, food"
+       },
+       "_meta": {
+         "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+         "io.modelcontextprotocol/clientInfo": {
+           "name": "example-client",
+           "version": "1.0.0"
+         },
+         "io.modelcontextprotocol/clientCapabilities": { "elicitation": {} }
+       }
+     }
+   }
+   ```
+
+   服务器返回一组消息，AI 应用把它们加入对话：
+
+   ```json
+   {
+     "jsonrpc": "2.0",
+     "id": 4,
+     "result": {
+       "resultType": "complete",
+       "description": "Guide through vacation planning process",
+       "messages": [
+         {
+           "role": "user",
+           "content": {
+             "type": "text",
+             "text": "Plan a vacation from New York to Barcelona for 2 travelers, from 2027-06-15 to 2027-06-22, with a total budget of $3000. Interests: beaches, architecture, food.\n\nUse the calendar, travel preferences, and past trips provided as context. Search for flights and hotels within the budget, and check the weather for the travel dates. Propose one package. After the user agrees, book it, add the trip to the calendar, and email a confirmation."
+           }
+         }
+       ],
+       "_meta": {
+         "io.modelcontextprotocol/serverInfo": {
+           "name": "travel-server",
+           "version": "1.0.0"
+         }
+       }
+     }
+   }
+   ```
+
+2. **用户选择要纳入的资源：**
+   - `calendar://events/2027-06`（来自日历/邮件服务器）
+   - `travel://preferences/europe`（来自旅行服务器）
+   - `travel://past-trips/spain-2023`（来自旅行服务器）
+
+3. **AI 使用工具处理请求：**
+
+   AI 应用先读取所有选中的资源，为模型收集上下文：从日历中找出空闲日期，从旅行偏好中了解偏好的航空公司和酒店类型，从过往行程中发现用户以前喜欢的地方。
+
+   有了这些上下文，模型接着按照旅行服务器提供的提示词模板行事。AI 应用把三个服务器的工具都暴露给模型，所以来自旅行服务器的提示词模板，也可以引导模型去调用天气服务器上的 `checkWeather`。
+
+   于是，模型依次调用了一系列工具：
+
+   - `searchFlights`（来自旅行服务器）：查询纽约到巴塞罗那的航班
+   - `searchHotels`（来自旅行服务器）：查找预算范围内的酒店
+   - `checkWeather`（来自天气服务器）：获取出行日期的气候预报
+
+   随后，模型利用这些信息完成预订和后续步骤，必要时由 AI 应用请求用户批准：
+   - `bookVacation`（来自旅行服务器）：预订航班和酒店。服务器会通过[征询](/docs/2026-07-28/learn/client-concepts#elicitation)请用户确认这次预订
+   - `createCalendarEvent`（来自日历/邮件服务器）：把行程加入用户的日历
+   - `sendEmail`（来自日历/邮件服务器）：发送包含行程详情的确认邮件
+
+**结果**：借助多个 MCP 服务器，用户研究并预订了一趟符合自己日程的巴塞罗那之旅。"Plan a vacation" 提示词模板引导 AI 跨多个服务器，把资源（日历空闲情况和旅行记录）与工具（搜索航班和酒店、完成预订、更新日历）结合起来，既收集了上下文，又完成了预订。原本可能要花几个小时的事，用 MCP 几分钟就办完了。

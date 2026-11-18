@@ -1,0 +1,177 @@
+---
+title: 理解 MCP 服务器 · 费曼解读
+sidebarTitle: 服务器（解读）
+description: 用餐厅打比方，讲清工具、资源、提示词模板分别是什么、谁说了算，以及多个服务器怎么一起干活。
+type: docs
+---
+
+<Info>
+  本页是社区编写的**非官方**解读，用费曼学习法重讲[《理解 MCP 服务器》](/zh/docs/2026-07-28/learn/server-concepts)（译文），对应英文原文是 [Understanding MCP servers](https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts)。解读和配图是二次创作，用词以通俗为先，严谨定义请以原文和[规范](https://modelcontextprotocol.io/specification/2026-07-28)为准。建议先读[《架构概览 · 费曼解读》](/zh/docs/2026-07-28/learn/architecture-explained)。
+</Info>
+
+## 一句话版
+
+**MCP 服务器就是“把某种能力打包好，按统一规矩交给 AI 应用”的程序。** 它交出去的东西只有三种：能**动手**的工具、能**读**的资源、能**照着做**的提示词模板。
+
+常见的服务器有：文件系统（读文档）、数据库（查数据）、GitHub（管代码）、Slack（团队沟通）、日历（排日程）。
+
+## 打个比方：一家餐厅
+
+- **模型 = 厨师**：真正“想办法、做决定”的人。
+- **AI 应用 = 前台服务员**：在顾客和厨师之间传话，决定把什么东西递进厨房。
+- **用户 = 顾客**：点菜的人。
+- **MCP 服务器 = 供货商**：给餐厅提供三样东西：
+
+| 原语 | 比喻 | 谁说了算 |
+|---|---|---|
+| **工具** | 厨具：厨师自己伸手拿 | **模型** |
+| **资源** | 食材和资料：前台决定递哪些进厨房 | **应用** |
+| **提示词模板** | 菜单上的套餐：顾客点了才做 | **用户** |
+
+<a href="/zh/images/server-concepts/control.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/server-concepts/control.light.svg" alt="三块积木：工具由模型控制，资源由应用控制，提示词模板由用户控制" /></a>
+<a href="/zh/images/server-concepts/control.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/server-concepts/control.svg" alt="三块积木：工具由模型控制，资源由应用控制，提示词模板由用户控制" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+这一页最该记住的就是**“谁说了算”**这一列。它决定了这三样东西在界面上怎么出现，以及要不要让用户确认。
+
+另外，原文提醒了一句：每个请求都照例在 `_meta` 里带上协议版本和客户端能力，每个结果都有 `resultType`。这是[上一篇](/zh/docs/2026-07-28/learn/architecture-explained)讲的“无状态”，这一页的例子都遵守它。
+
+## 工具：让 AI 能“动手”
+
+工具就是**模型可以主动调用的函数**：写数据库、调外部 API、改文件、触发其他逻辑都行。模型根据对话内容，自己决定什么时候用哪个工具。
+
+**两个方法**：`tools/list` 列出有哪些工具，`tools/call` 调用其中一个。
+
+### 一个工具的“说明书”
+
+<a href="/zh/images/server-concepts/tool-anatomy.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/server-concepts/tool-anatomy.light.svg" alt="工具定义的字段，以及 inputSchema 约束调用参数、outputSchema 约束结构化结果" /></a>
+<a href="/zh/images/server-concepts/tool-anatomy.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/server-concepts/tool-anatomy.svg" alt="工具定义的字段，以及 inputSchema 约束调用参数、outputSchema 约束结构化结果" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+每个工具都有一份“说明书”，原文的例子是搜航班 `searchFlights`：
+
+- **`name`**：唯一标识，调用时必须一字不差。
+- **`title`**：给人看的显示名。
+- **`description`**：给**模型**看的，模型靠这句话判断什么时候该用它。所以描述写得好不好，直接影响模型会不会用对工具。
+- **`inputSchema`**：用 JSON Schema 写清参数。调用时的 `arguments` 必须符合它。
+- **`outputSchema`**（可选）：声明结果的结构。结果里的 `structuredContent` 要符合它，程序可以直接解析。
+
+一个细节：带 `outputSchema` 的工具，结果里会**同时**给 `structuredContent` 和一段 `content` 文本，文本就是把同一份数据序列化一遍。这是为了照顾只认文本的旧客户端，叫向后兼容。
+
+原文的旅行例子里还有建日程 `createCalendarEvent`、发邮件 `sendEmail`，调用方式完全一样，只是 `name` 和 `arguments` 不同。
+
+### 模型说了算，但人要盯着
+
+工具能真的改东西，所以原文强调**人工监督**。应用可以：
+
+- 在界面上列出可用工具，让用户决定某次对话里开放哪些；
+- 每次执行前弹窗审批；
+- 对安全的操作预先授权，不用每次都问；
+- 用操作日志记录每一次调用和结果。
+
+## 资源：给 AI 递资料
+
+资源是**被动的、只读的数据**：文件内容、数据库表结构、API 文档、日历……AI 应用把它们读回来，**自己决定怎么用**：挑一部分、用向量检索或关键词搜索，或者整份交给模型。
+
+<a href="/zh/images/server-concepts/resources.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/server-concepts/resources.light.svg" alt="资源：直接资源和资源模板两种发现方式、参数补全、读取缓存与订阅" /></a>
+<a href="/zh/images/server-concepts/resources.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/server-concepts/resources.svg" alt="资源：直接资源和资源模板两种发现方式、参数补全、读取缓存与订阅" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+### 两种找资料的方式
+
+每个资源都有一个唯一的 **URI**，比如 `file:///path/to/document.md`，还可以声明 MIME 类型。
+
+- **直接资源**：固定的 URI，像书架上贴好标签的书，拿来就能读。例：`calendar://events/2027-06` 是 2027 年 6 月的日历。用 `resources/list` 列出来。
+- **资源模板**：带参数的 URI，像填空题。例：`travel://activities/{city}/{category}`，填成 `travel://activities/Barcelona/museums` 就是“巴塞罗那的博物馆”。用 `resources/templates/list` 列出来，模板自带标题、说明和 MIME 类型。
+
+不管哪种，最后都用 `resources/read` 读。
+
+### 填空时帮你补全
+
+资源模板的参数可以**自动补全**（服务器要声明 `completions` 能力）。原文的例子很巧妙：
+
+1. 模板是 `travel://flights/{origin}/{destination}`，用户已经把出发地定为 `JFK`；
+2. 目的地正在输入 `Bar`；
+3. 客户端发 `completion/complete`，**同时把已经定好的 `origin: "JFK"` 放进 `context.arguments`**；
+4. 服务器据此缩小范围，只建议 `["BCN", "BGI"]`（巴塞罗那、巴巴多斯），因为这两个地方都有从 JFK 出发的航班。
+
+关键在第 3 步：把已经填好的参数一起告诉服务器，补全建议才会更准。
+
+### 读取、缓存和订阅
+
+读回来的结果除了内容，还有两个缓存提示：
+
+- **`ttlMs: 60000`**：1 分钟内都算新鲜，可以直接用缓存；
+- **`cacheScope: "private"`**：这份数据属于当前用户，缓存时不能跨授权上下文共享。
+
+想在资源变化时得到通知，就发 `subscriptions/listen`，把要盯的 URI 写进 `resourceSubscriptions`。服务器要在 `resources` 能力里声明 `"subscribe": true`，之后资源一变就推送 `notifications/resources/updated`。
+
+### 应用说了算，界面随意
+
+资源由**应用**决定怎么呈现：像文件夹一样的树、搜索过滤、根据对话自动附加、手动多选……协议不规定具体样式，应用怎么顺手怎么来。
+
+## 提示词模板：一键套用的“套餐”
+
+提示词模板是**预制的指令模板**。服务器作者用它提供某个领域的常用任务，或者示范“怎么用好我这个服务器”。
+
+它是**用户说了算**的：必须用户主动选，不会被自动触发。界面上通常是：
+
+- 斜杠命令：输入 `/` 看到 `/plan-vacation`；
+- 命令面板、常用按钮、右键菜单里的推荐。
+
+**两个方法**：`prompts/list` 列出模板（包括每个模板接受哪些参数），`prompts/get` 用填好的参数换回展开后的消息。参数和资源模板一样，也支持 `completion/complete` 自动补全。
+
+原文的“规划假期”模板 `plan-vacation` 有出发地、目的地、出发和返回日期、预算、人数、兴趣等参数。有两个容易踩的坑：
+
+- **参数没有类型，全部按字符串传**，所以要在 `description` 里写清格式，比如“YYYY-MM-DD”。
+- **参数默认是可选的**，只有标了 `required: true` 的才必填。
+
+和用户自己从头写一段话相比，模板的好处是：选一个模板、按格式填几个参数，就能得到每次都一样的工作流程。
+
+## 多个服务器一起干活
+
+原文说，MCP 真正的威力在于**多个服务器协同**。例子是一个 AI 旅行规划应用，连了三个服务器：旅行（航班、酒店、行程）、天气（气候和预报）、日历 / 邮件（日程和沟通）。
+
+<a href="/zh/images/server-concepts/multi-server.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/server-concepts/multi-server.light.svg" alt="多服务器协作：用户调用旅行服务器的模板，宿主读取旅行和日历的资源，模型调用三个服务器的工具，预订前通过征询请用户确认" /></a>
+<a href="/zh/images/server-concepts/multi-server.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/server-concepts/multi-server.svg" alt="多服务器协作：用户调用旅行服务器的模板，宿主读取旅行和日历的资源，模型调用三个服务器的工具，预订前通过征询请用户确认" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+1. **用户调用模板**：选“Plan a vacation”，填上纽约 → 巴塞罗那、6 月 15 日到 22 日、预算 3000 美元、2 人、喜欢海滩建筑美食。客户端向旅行服务器发 `prompts/get`，拿回一段写好的指令：“用提供的日历、偏好和以往行程，在预算内搜航班和酒店，查一下天气，提一个方案；用户同意后预订、写进日历、发确认邮件。”
+2. **用户选资料**：日历（来自日历服务器），旅行偏好和以往行程（来自旅行服务器）。宿主逐个 `resources/read`，交给模型当上下文。
+3. **模型查信息**：调用 `searchFlights`、`searchHotels`（旅行），以及 `checkWeather`（**天气**服务器）。
+4. **模型办事**：`bookVacation` 预订，服务器先通过征询请用户确认；然后 `createCalendarEvent` 写日历、`sendEmail` 发邮件（日历 / 邮件服务器）。
+
+注意第 3 步：**旅行服务器的模板，指挥模型去调了天气服务器的工具**。这能成立，是因为宿主把三个服务器的工具汇总成了一张表交给模型。每个服务器只管自己那一摊，组合起来却能完成一件跨领域的大事。这就是“统一接口”的价值。
+
+## 费曼自测
+
+能用自己的话答出来，才算真懂。先想一想，再展开看参考答案。
+
+<AccordionGroup>
+  <Accordion title="1. 工具、资源、提示词模板，分别由谁说了算？这会带来什么不同？">
+    工具由模型决定调用，资源由应用决定怎么取用、怎么呈现，提示词模板由用户主动选择。控制者不同，界面和安全措施也不同：工具需要审批和日志，资源常见的是选择器和自动附加，提示词模板通常做成斜杠命令或按钮。
+  </Accordion>
+  <Accordion title="2. 工具定义里，description 和 title 有什么区别？">
+    `title` 是给人看的显示名；`description` 是给模型看的，模型靠它判断什么时候该用这个工具。所以 description 写得清不清楚，直接影响模型会不会用对。
+  </Accordion>
+  <Accordion title="3. 一个工具已经返回了 structuredContent，为什么还要在 content 里再放一份文本？">
+    为了向后兼容。有些客户端只认文本内容，把同一份数据序列化成文本放进 `content`，它们也能用。
+  </Accordion>
+  <Accordion title="4. 直接资源和资源模板怎么区分？各用什么方法列出来？">
+    直接资源是固定的 URI，用 `resources/list` 列出；资源模板是带 `{参数}` 的 URI，用 `resources/templates/list` 列出，填上参数后得到具体资源。两种最后都用 `resources/read` 读取。
+  </Accordion>
+  <Accordion title="5. 补全目的地机场时，为什么要把已经选好的出发地也发给服务器？">
+    放在 `context.arguments` 里的已选参数能让服务器缩小范围。知道出发地是 JFK，服务器就只建议有航班从 JFK 出发的目的地，比如 BCN 和 BGI。
+  </Accordion>
+  <Accordion title="6. 提示词模板的参数有类型吗？默认必填吗？">
+    没有类型，所有值都按字符串传，格式要求写在 `description` 里。默认是可选的，只有 `required: true` 的参数才必填。
+  </Accordion>
+  <Accordion title="7. 旅行服务器的模板，怎么能让模型去调天气服务器的工具？">
+    因为宿主把所有已连接服务器的工具汇总成一张表交给模型。模板只是告诉模型“去查天气”，模型从汇总表里找到 `checkWeather`，宿主再把调用转给天气服务器对应的客户端。
+  </Accordion>
+</AccordionGroup>
+
+## 动手看一看
+
+- [MCP Inspector 实战](https://flinshu.github.io/mcp-explained/inspector.html)：Tools、Resources、Prompts 三个标签页正好对应本页的三块积木。示例服务器里的 Team Management 模板演示了参数补全，Resources 页面能看到直接资源和资源模板。
+- [MCP 图解](https://flinshu.github.io/mcp-explained/#tools)：“工具”“资源”“提示词模板”三课用动画演示每一条消息。
