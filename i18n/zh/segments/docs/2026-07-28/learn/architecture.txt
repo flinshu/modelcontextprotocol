@@ -1,0 +1,646 @@
+# 对照文件：docs/docs/2026-07-28/learn/architecture.mdx
+# 只改 "@@ zh" 下面的译文；英文部分由 extract 生成，不要手改。
+
+@@ f01976881a
+Architecture overview
+@@ zh
+架构概览
+
+@@ b040b4179b
+Architecture
+@@ zh
+架构
+
+@@ 9f1f7a4dbf
+This overview of the Model Context Protocol (MCP) discusses its [scope](#scope) and [core concepts](#concepts-of-mcp), and provides an [example](#example) demonstrating each core concept.
+@@ zh
+本文概述 Model Context Protocol（MCP）的[范围](#scope)和[核心概念](#concepts-of-mcp)，并通过一个[示例](#example)逐一演示这些核心概念。
+
+@@ d5ab126fb8
+Because MCP SDKs abstract away many concerns, most developers will likely find the [data layer protocol](#data-layer-protocol) section to be the most useful. It discusses how MCP servers can provide context to an AI application.
+@@ zh
+MCP SDK 已经替你处理了许多细节，因此对大多数开发者来说，最有用的可能是[数据层协议](#data-layer-protocol)一节。它介绍了 MCP 服务器如何向 AI 应用提供上下文。
+
+@@ e93ca70c23
+For specific implementation details, please refer to the documentation for your [language-specific SDK](/docs/2026-07-28/sdk).
+@@ zh
+具体的实现细节，请参阅你所用语言的 [SDK](/docs/2026-07-28/sdk) 文档。
+
+@@ b4517a5d09
+## Scope
+@@ zh
+## 范围
+
+@@ c3107ab9a9
+The Model Context Protocol includes the following projects:
+@@ zh
+Model Context Protocol 包括以下几个项目：
+
+@@ 72a9c9ca5f
+- [MCP Specification](https://modelcontextprotocol.io/specification/latest): A specification of MCP that outlines the implementation requirements for clients and servers.
+- [MCP SDKs](/docs/2026-07-28/sdk): SDKs for different programming languages that implement MCP.
+- **MCP Development Tools**: Tools for developing MCP servers and clients, including the [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
+- [MCP Reference Server Implementations](https://github.com/modelcontextprotocol/servers): Reference implementations of MCP servers.
+@@ zh
+- [MCP 规范](https://modelcontextprotocol.io/specification/latest)：MCP 的规范文档，规定了客户端和服务器的实现要求。
+- [MCP SDK](/docs/2026-07-28/sdk)：用不同编程语言实现 MCP 的 SDK。
+- **MCP 开发工具**：用于开发 MCP 服务器和客户端的工具，包括 [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
+- [MCP 参考服务器实现](https://github.com/modelcontextprotocol/servers)：MCP 服务器的参考实现。
+
+@@ d5f22232b6
+<Note>
+  MCP focuses solely on the protocol for context exchange—it does not dictate
+  how AI applications use LLMs or manage the provided context.
+</Note>
+@@ zh
+<Note>
+  MCP 只关注上下文交换的协议本身，并不规定 AI 应用如何使用 LLM，也不规定如何管理所提供的上下文。
+</Note>
+
+@@ b54ff83238
+## Concepts of MCP
+@@ zh
+## MCP 的概念
+
+@@ 30c3703852
+### Participants
+@@ zh
+### 参与者
+
+@@ ed566704a1
+MCP follows a client-server architecture where an MCP host — an AI application like [Claude Code](https://www.anthropic.com/claude-code) or [Claude Desktop](https://www.claude.ai/download) — establishes connections to one or more MCP servers. The MCP host accomplishes this by creating one MCP client for each MCP server. Each MCP client maintains a dedicated connection with its corresponding MCP server.
+@@ zh
+MCP 采用客户端-服务器架构：MCP 宿主（Host），即 [Claude Code](https://www.anthropic.com/claude-code) 或 [Claude Desktop](https://www.claude.ai/download) 这样的 AI 应用，与一个或多个 MCP 服务器建立连接。具体做法是，MCP 宿主为每个 MCP 服务器各创建一个 MCP 客户端，每个 MCP 客户端与对应的 MCP 服务器保持一条专用连接。
+
+@@ 4797c6f718
+Local MCP servers that use the STDIO transport typically serve a single MCP client, whereas remote MCP servers that use the Streamable HTTP transport will typically serve many MCP clients.
+@@ zh
+使用 STDIO 传输的本地 MCP 服务器通常只服务一个 MCP 客户端；而使用 Streamable HTTP 传输的远程 MCP 服务器通常会同时服务许多 MCP 客户端。
+
+@@ 208524c268
+The key participants in the MCP architecture are:
+@@ zh
+MCP 架构中的主要参与者有：
+
+@@ b59beda195
+- **MCP Host**: The AI application that coordinates and manages one or multiple MCP clients
+- **MCP Client**: A component that maintains a connection to an MCP server and obtains context from an MCP server for the MCP host to use
+- **MCP Server**: A program that provides context to MCP clients
+@@ zh
+- **MCP 宿主**：协调和管理一个或多个 MCP 客户端的 AI 应用
+- **MCP 客户端**：一个组件，负责与某个 MCP 服务器保持连接，并从该服务器获取上下文供 MCP 宿主使用
+- **MCP 服务器**：向 MCP 客户端提供上下文的程序
+
+@@ c9f66776c3
+**For example**: Visual Studio Code acts as an MCP host. When Visual Studio Code establishes a connection to an MCP server, such as the [Sentry MCP server](https://docs.sentry.io/product/sentry-mcp/), the Visual Studio Code runtime instantiates an MCP client object that maintains the connection to the Sentry MCP server.
+When Visual Studio Code subsequently connects to another MCP server, such as the [local filesystem server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem), the Visual Studio Code runtime instantiates an additional MCP client object to maintain this connection.
+@@ zh
+**举个例子**：Visual Studio Code 就是一个 MCP 宿主。当 Visual Studio Code 连接到某个 MCP 服务器（例如 [Sentry MCP 服务器](https://docs.sentry.io/product/sentry-mcp/)）时，Visual Studio Code 运行时会实例化一个 MCP 客户端对象，由它维持与 Sentry MCP 服务器的连接。
+之后 Visual Studio Code 再连接另一个 MCP 服务器（例如[本地文件系统服务器](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)）时，Visual Studio Code 运行时会再实例化一个 MCP 客户端对象来维持这条连接。
+
+@@ 83859d4536
+Note that **MCP server** refers to the program that serves context data, regardless of
+where it runs. MCP servers can execute locally or remotely. For example, when
+Claude Desktop launches the [filesystem
+server](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem),
+the server runs locally on the same machine because it uses the STDIO
+transport. This is commonly referred to as a "local" MCP server. The official
+[Sentry MCP server](https://docs.sentry.io/product/sentry-mcp/) runs on the
+Sentry platform, and uses the Streamable HTTP transport. This is commonly
+referred to as a "remote" MCP server.
+@@ zh
+注意，**MCP 服务器**指的是提供上下文数据的程序，与它运行在哪里无关。MCP 服务器既可以在本地运行，也可以在远程运行。例如，Claude Desktop 启动[文件系统服务器](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)时，这个服务器使用 STDIO 传输，因此运行在同一台机器上，这通常称为"本地" MCP 服务器。官方的 [Sentry MCP 服务器](https://docs.sentry.io/product/sentry-mcp/)运行在 Sentry 平台上，使用 Streamable HTTP 传输，这通常称为"远程" MCP 服务器。
+
+@@ ad2af22f31
+### Layers
+@@ zh
+### 分层
+
+@@ 771714bf66
+MCP consists of two layers:
+@@ zh
+MCP 由两层组成：
+
+@@ 2c98afb3f5
+- **Data layer**: Defines the JSON-RPC based protocol for client-server communication, including capability and version discovery, and core primitives, such as tools, resources, prompts and notifications.
+- **Transport layer**: Defines the communication mechanisms and channels that enable data exchange between clients and servers, including transport-specific connection establishment, message framing, and authorization.
+@@ zh
+- **数据层**：定义基于 JSON-RPC 的客户端-服务器通信协议，包括能力与版本的发现，以及工具、资源、提示词模板和通知等核心原语。
+- **传输层**：定义客户端与服务器之间交换数据所用的通信机制和通道，包括各传输方式特有的连接建立、消息分帧和授权。
+
+@@ 7b99398259
+Conceptually the data layer is the inner layer, while the transport layer is the outer layer.
+@@ zh
+从概念上说，数据层是内层，传输层是外层。
+
+@@ 8216cfb278
+#### Data layer
+@@ zh
+#### 数据层
+
+@@ 526431a027
+The data layer implements a [JSON-RPC 2.0](https://www.jsonrpc.org/) based exchange protocol that defines the message structure and semantics.
+This layer includes:
+@@ zh
+数据层实现了一套基于 [JSON-RPC 2.0](https://www.jsonrpc.org/) 的交换协议，定义了消息的结构和语义。
+这一层包括：
+
+@@ 52b0c8d55e
+- **Discovery**: Lets clients query a server's supported protocol versions, capabilities, and identity through the `server/discover` request
+- **Server features**: Enables servers to provide core functionality including tools for AI actions, resources for context data, and prompts for interaction templates from and to the client
+- **Client features**: Enables servers to elicit input from the user.
+- **Utility features**: Supports additional capabilities like notifications for real-time updates and progress tracking for long-running operations
+@@ zh
+- **发现**：客户端可以通过 `server/discover` 请求，查询服务器支持的协议版本、能力和身份信息
+- **服务器功能**：让服务器提供核心功能，包括供 AI 执行操作的工具、提供上下文数据的资源，以及用于客户端交互的提示词模板
+- **客户端功能**：让服务器能够向用户征询输入。
+- **辅助功能**：支持其他附加能力，例如实时更新通知、长时间运行操作的进度跟踪
+
+@@ c7d8f81ab5
+#### Transport layer
+@@ zh
+#### 传输层
+
+@@ c628b80276
+The transport layer manages communication channels and authentication between clients and servers. It handles connection establishment, message framing, and secure communication between MCP participants.
+@@ zh
+传输层负责客户端与服务器之间的通信通道和身份认证，处理 MCP 参与者之间的连接建立、消息分帧和安全通信。
+
+@@ 608e83e99f
+MCP supports two transport mechanisms:
+@@ zh
+MCP 支持两种传输机制：
+
+@@ 117de8a2de
+- **Stdio transport**: Uses standard input/output streams for direct process communication between local processes on the same machine, providing optimal performance with no network overhead.
+- **Streamable HTTP transport**: Uses HTTP POST for client-to-server messages with optional Server-Sent Events for streaming capabilities. This transport enables remote server communication and supports standard HTTP authentication methods including bearer tokens, API keys, and custom headers. MCP recommends using OAuth to obtain authentication tokens.
+@@ zh
+- **Stdio 传输**：通过标准输入/输出流，在同一台机器上的本地进程之间直接通信。没有网络开销，性能最好。
+- **Streamable HTTP 传输**：客户端发往服务器的消息使用 HTTP POST，并可选用 Server-Sent Events 实现流式传输。这种传输方式支持与远程服务器通信，也支持标准的 HTTP 认证方式，包括 bearer 令牌、API 密钥和自定义请求头。MCP 推荐使用 OAuth 获取认证令牌。
+
+@@ 27758a348a
+The transport layer abstracts communication details from the protocol layer, enabling the same JSON-RPC 2.0 message format across all transport mechanisms.
+@@ zh
+传输层把通信细节与协议层隔离开来，使所有传输机制都能使用同一种 JSON-RPC 2.0 消息格式。
+
+@@ 6aed4c6bdd
+### Data Layer Protocol
+@@ zh
+### 数据层协议
+
+@@ d5d5a73892
+A core part of MCP is defining the schema and semantics between MCP clients and MCP servers. Developers will likely find the data layer — in particular, the set of [primitives](#primitives) — to be the most interesting part of MCP. It is the part of MCP that defines the ways developers can share context from MCP servers to MCP clients.
+@@ zh
+MCP 的核心之一，是定义 MCP 客户端与 MCP 服务器之间的数据模式和语义。开发者最感兴趣的可能就是数据层，尤其是其中的[原语](#primitives)。正是这一部分规定了开发者可以通过哪些方式，把上下文从 MCP 服务器共享给 MCP 客户端。
+
+@@ 06a6ba4310
+MCP uses [JSON-RPC 2.0](https://www.jsonrpc.org/) as its underlying RPC protocol. Clients send requests and servers respond to them. Servers can request input from the client through the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) pattern. Notifications can be used when no response is required.
+@@ zh
+MCP 以 [JSON-RPC 2.0](https://www.jsonrpc.org/) 作为底层的 RPC 协议。客户端发送请求，服务器作出响应。服务器可以通过[多轮往返请求](/specification/2026-07-28/basic/patterns/mrtr)模式向客户端索取输入。不需要响应时，可以使用通知。
+
+@@ 3b92b58d1e
+#### Statelessness and discovery
+@@ zh
+#### 无状态与发现
+
+@@ b2ac19e0e1
+MCP is a <Tooltip tip="Every request contains all the information needed to process it, so servers infer nothing from previous requests">stateless protocol</Tooltip>. Every request carries the protocol version and the <Tooltip tip="Features and operations that a client or server supports, such as tools, resources, or prompts">capabilities</Tooltip> relevant to that request in its `_meta` field, so the server can process each request on its own. Clients should also identify themselves in the same field unless configured not to. Servers advertise their supported versions and capabilities through the mandatory [`server/discover`](/specification/2026-07-28/server/discover) request, which clients may send before any other request. Detailed information can be found in the [specification](/specification/2026-07-28/basic/index#statelessness), and the [example](#example) showcases the per-request metadata and the discovery sequence.
+@@ zh
+MCP 是一种<Tooltip tip="每个请求都包含处理它所需的全部信息，因此服务器不会从之前的请求中推断任何东西">无状态协议</Tooltip>。每个请求都在 `_meta` 字段中携带协议版本，以及与该请求相关的<Tooltip tip="客户端或服务器支持的功能和操作，例如工具、资源或提示词模板">能力</Tooltip>，因此服务器可以独立处理每一个请求。除非另有配置，客户端还应在同一字段中标明自己的身份。服务器通过必须实现的 [`server/discover`](/specification/2026-07-28/server/discover) 请求声明自己支持的版本和能力，客户端可以在发送其他请求之前先发这个请求。详细信息见[规范](/specification/2026-07-28/basic/index#statelessness)，[示例](#example)中也演示了每个请求附带的元数据和发现流程。
+
+@@ 0553f223d6
+#### Primitives
+@@ zh
+#### 原语
+
+@@ 7c2f948e0c
+MCP primitives are the most important concept within MCP. They define what clients and servers can offer each other. These primitives specify the types of contextual information that can be shared with AI applications and the range of actions that can be performed.
+@@ zh
+原语是 MCP 中最重要的概念，它定义了客户端和服务器可以相互提供什么：可以与 AI 应用共享哪些类型的上下文信息，以及可以执行哪些操作。
+
+@@ b9011aa6e3
+MCP defines three core primitives that _servers_ can expose:
+@@ zh
+MCP 定义了三种可由*服务器*暴露的核心原语：
+
+@@ a0b181cddf
+- **Tools**: Executable functions that AI applications can invoke to perform actions (e.g., file operations, API calls, database queries)
+- **Resources**: Data sources that provide contextual information to AI applications (e.g., file contents, database records, API responses)
+- **Prompts**: Reusable templates that help structure interactions with language models (e.g., system prompts, few-shot examples)
+@@ zh
+- **工具**：AI 应用可以调用来执行操作的可执行函数（例如文件操作、API 调用、数据库查询）
+- **资源**：为 AI 应用提供上下文信息的数据源（例如文件内容、数据库记录、API 响应）
+- **提示词模板**：帮助组织与语言模型交互的可复用模板（例如系统提示词、少样本示例）
+
+@@ f2afed4b94
+Each primitive type has associated methods for discovery (`*/list`), and for either retrieval (`resources/read`, `prompts/get`) or execution (`tools/call`).
+MCP clients will use the `*/list` methods to discover available primitives. For example, a client can list the available tools (`tools/list`), provide them to a model, and execute the ones that the model calls (`tools/call`). This design allows listings to be dynamic.
+@@ zh
+每种原语都有对应的方法：用于发现的（`*/list`），以及用于获取（`resources/read`、`prompts/get`）或执行（`tools/call`）的。
+MCP 客户端用 `*/list` 方法发现可用的原语。例如，客户端可以先列出可用的工具（`tools/list`），把它们提供给模型，再执行模型调用的那些工具（`tools/call`）。这样的设计让列表可以是动态的。
+
+@@ 875ed37bb1
+As a concrete example, consider an MCP server that provides context about a database. It can expose tools for querying the database, a resource that contains the schema of the database, and a prompt that includes few-shot examples for interacting with the tools.
+@@ zh
+举一个具体的例子：假设有一个提供数据库相关上下文的 MCP 服务器。它可以暴露用于查询数据库的工具、一个包含数据库模式（schema）的资源，以及一个包含少样本示例、指导如何使用这些工具的提示词模板。
+
+@@ 2398046534
+For more details about server primitives see [server concepts](./server-concepts).
+@@ zh
+关于服务器原语的更多细节，请参阅[服务器概念](./server-concepts)。
+
+@@ 1f77561b77
+MCP also defines primitives that _clients_ can expose. These primitives allow MCP server authors to build richer interactions.
+@@ zh
+MCP 还定义了可由*客户端*暴露的原语，让 MCP 服务器的作者能够构建更丰富的交互。
+
+@@ c37247f057
+- **Elicitation**: Allows servers to request additional information from users. This is useful when server authors want to get more information from the user, or ask for confirmation of an action. Servers request user input with the `elicitation/create` method.
+@@ zh
+- **征询（Elicitation）**：允许服务器向用户请求更多信息。当服务器作者需要从用户那里获取更多信息，或需要用户确认某个操作时，这一原语很有用。服务器通过 `elicitation/create` 方法请求用户输入。
+
+@@ a9f45885a3
+Elicitation requests are delivered through the [Multi Round-Trip Requests](/specification/2026-07-28/basic/patterns/mrtr) pattern, explained in the [elicitation overview](/docs/2026-07-28/learn/client-concepts#elicitation).
+@@ zh
+征询请求通过[多轮往返请求](/specification/2026-07-28/basic/patterns/mrtr)模式传递，详见[征询概述](/docs/2026-07-28/learn/client-concepts#elicitation)。
+
+@@ b618c7446c
+For more details about client primitives see [client concepts](./client-concepts).
+@@ zh
+关于客户端原语的更多细节，请参阅[客户端概念](./client-concepts)。
+
+@@ 163fbb9fef
+Roots and sampling, which are client features, and protocol logging, which is a server feature, are [deprecated](/specification/2026-07-28/deprecated) as of protocol version `2026-07-28`. New implementations should use the following alternatives:
+@@ zh
+自协议版本 `2026-07-28` 起，客户端功能中的根目录（roots）和采样（sampling），以及服务器功能中的协议日志，均已[弃用](/specification/2026-07-28/deprecated)。新的实现应改用以下替代方案：
+
+@@ 1f6315b4f3
+- **Roots**: Pass directories or files through tool parameters, resource URIs, or server configuration.
+- **Sampling**: Integrate directly with LLM provider APIs. The protocol does not define a replacement for requesting completions through the client.
+- **Logging**: [Log to `stderr`](/docs/2026-07-28/tools/debugging#implementing-logging) for stdio servers, or use [OpenTelemetry](https://opentelemetry.io/).
+@@ zh
+- **根目录**：通过工具参数、资源 URI 或服务器配置传入目录或文件。
+- **采样**：直接对接 LLM 提供商的 API。协议没有为"通过客户端请求模型生成"定义替代机制。
+- **日志**：stdio 服务器[输出到 `stderr`](/docs/2026-07-28/tools/debugging#implementing-logging)，或使用 [OpenTelemetry](https://opentelemetry.io/)。
+
+@@ 0fed1c858d
+Besides server and client primitives, the protocol supports optional [extensions](/extensions/overview) that build on the core protocol. For example, the [Tasks extension](/extensions/tasks/overview) lets servers return a durable handle for long-running requests, so clients can poll for status and retrieve the result later.
+@@ zh
+除了服务器原语和客户端原语，协议还支持构建在核心协议之上的可选[扩展](/extensions/overview)。例如，[任务（Tasks）扩展](/extensions/tasks/overview)允许服务器为长时间运行的请求返回一个持久的句柄，客户端可以据此轮询状态，并在之后获取结果。
+
+@@ 5c93a939dc
+#### Notifications
+@@ zh
+#### 通知
+
+@@ 7a846ce4fe
+The protocol supports real-time notifications to enable dynamic updates between servers and clients. For example, when a server's available tools change (such as when new functionality becomes available or existing tools are modified), the server can send tool update notifications to inform connected clients about these changes. Notifications are sent as JSON-RPC 2.0 notification messages (without expecting a response). Change notifications are opt-in: the client opens a long-lived [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) stream naming the notification types it wants to receive, and the server delivers matching notifications on that stream.
+@@ zh
+协议支持实时通知，让服务器和客户端之间可以动态更新。例如，当服务器的可用工具发生变化（比如有新功能可用，或现有工具被修改）时，服务器可以发送工具更新通知，告知已连接的客户端。通知以 JSON-RPC 2.0 通知消息的形式发送（不期待响应）。变更通知需要主动订阅：客户端打开一个长期存在的 [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) 流，列出想接收的通知类型，服务器就在这个流上推送匹配的通知。
+
+@@ 09a9cecaab
+## Example
+@@ zh
+## 示例
+
+@@ d5620c2eeb
+### Data Layer
+@@ zh
+### 数据层
+
+@@ a5622d3180
+This section provides a step-by-step walkthrough of an MCP client-server interaction, focusing on the data layer protocol. We'll demonstrate discovery, tool operations, and notifications using JSON-RPC 2.0 messages.
+@@ zh
+本节以数据层协议为重点，一步步演示 MCP 客户端与服务器的交互过程。我们会用 JSON-RPC 2.0 消息演示发现、工具操作和通知。
+
+@@ f286259a60
+<Steps>
+<Step title="Discovery">
+@@ zh
+<Steps>
+<Step title="发现">
+
+@@ 833582d3ab
+As described in the [statelessness and discovery](#statelessness-and-discovery) section, every MCP request carries the protocol version and client capabilities in its `_meta` field, and clients should also include their identity there. A client that wants to learn what a server supports before issuing other requests sends a `server/discover` request, which every server must implement. The discovery response is typically cacheable, meaning it can be re-used so the discovery flow does not need to be performed for every request.
+@@ zh
+如[无状态与发现](#statelessness-and-discovery)一节所述，每个 MCP 请求都在 `_meta` 字段中携带协议版本和客户端能力，客户端还应在其中附上自己的身份。如果客户端想在发出其他请求之前先了解服务器支持什么，就发送 `server/discover` 请求，每个服务器都必须实现这个请求。发现结果通常可以缓存，也就是说可以重复使用，不必每次请求前都走一遍发现流程。
+
+@@ 470f8f2be9
+#### Understanding the Discovery Exchange
+@@ zh
+#### 理解发现交换
+
+@@ 0c9c57dd3f
+The `_meta` fields and the discovery response together serve several purposes:
+@@ zh
+`_meta` 字段和发现响应共同起到以下几个作用：
+
+@@ 06d26c0371
+1. **Protocol Version Selection**: The `io.modelcontextprotocol/protocolVersion` field declares the version the client is speaking on this request, and `supportedVersions` in the response lists the versions the server accepts. If a server does not support the requested version, it rejects the request with an `UnsupportedProtocolVersionError` listing the versions it does support, and the client retries with a mutually supported version.
+@@ zh
+1. **协议版本选择**：`io.modelcontextprotocol/protocolVersion` 字段声明客户端在这次请求中使用的版本，响应中的 `supportedVersions` 列出服务器接受的版本。如果服务器不支持所请求的版本，它会以 `UnsupportedProtocolVersionError` 拒绝请求，并列出自己支持的版本，客户端再用双方都支持的版本重试。
+
+@@ 9e7ad197ab
+2. **Capability Discovery**: The client declares its capabilities in `io.modelcontextprotocol/clientCapabilities` on every request, and the server returns its own `capabilities` object from `server/discover`. This tells each party which [primitives](#primitives) the other can handle (tools, resources, prompts) and whether change [notifications](#notifications) are available, so unsupported operations are never attempted.
+@@ zh
+2. **能力发现**：客户端在每个请求的 `io.modelcontextprotocol/clientCapabilities` 中声明自己的能力，服务器则在 `server/discover` 的结果中返回自己的 `capabilities` 对象。这样双方都知道对方能处理哪些[原语](#primitives)（工具、资源、提示词模板），以及是否提供变更[通知](#notifications)，从而不会尝试对方不支持的操作。
+
+@@ 2693a6cde8
+3. **Identity Exchange**: The `io.modelcontextprotocol/clientInfo` field in the request's `_meta` and the `io.modelcontextprotocol/serverInfo` field in the result's `_meta` provide identification and versioning information for debugging and compatibility purposes.
+@@ zh
+3. **身份交换**：请求 `_meta` 中的 `io.modelcontextprotocol/clientInfo` 字段和结果 `_meta` 中的 `io.modelcontextprotocol/serverInfo` 字段提供身份和版本信息，用于调试和兼容性处理。
+
+@@ 91d8efaf91
+In this example, the exchange demonstrates how MCP capabilities are declared:
+@@ zh
+这个例子中的交换展示了 MCP 能力是如何声明的：
+
+@@ 9cea8e04a7
+**Client Capabilities**:
+@@ zh
+**客户端能力**：
+
+@@ 6bb5f6cfc3
+- `"elicitation": {}` - The client declares it can gather additional input from the user when the server requests it
+@@ zh
+- `"elicitation": {}`：客户端声明，当服务器请求时，它可以向用户收集额外的输入
+
+@@ 675518bfa2
+**Server Capabilities**:
+@@ zh
+**服务器能力**：
+
+@@ d7f41e6436
+- `"tools": {"listChanged": true}` - The server supports the tools primitive and can honor a `toolsListChanged` filter in [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions). Clients that request this filter receive `notifications/tools/list_changed` when the tool list changes.
+- `"resources": {}` - The server also supports the resources primitive (can handle `resources/list` and `resources/read` methods)
+@@ zh
+- `"tools": {"listChanged": true}`：服务器支持工具原语，并且能够响应 [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) 中的 `toolsListChanged` 过滤条件。请求了这个过滤条件的客户端，会在工具列表变化时收到 `notifications/tools/list_changed`。
+- `"resources": {}`：服务器还支持资源原语（可以处理 `resources/list` 和 `resources/read` 方法）
+
+@@ e57b25a32a
+Calling `server/discover` is optional. Because every request carries the same `_meta` fields, a client is free to send any request directly and handle a version error if one comes back. Discovery is a convenient way to fetch the server's identity, capabilities, and supported versions in a single request.
+@@ zh
+调用 `server/discover` 是可选的。因为每个请求都携带同样的 `_meta` 字段，客户端完全可以直接发送任何请求，如果收到版本错误再处理即可。发现只是一种便捷方式，用一个请求就能拿到服务器的身份、能力和支持的版本。
+
+@@ f00c4c534c
+#### How This Works in AI Applications
+@@ zh
+#### 在 AI 应用中如何运作
+
+@@ 311265e136
+The AI application's MCP client manager connects to configured servers and stores their discovered capabilities for later use. The application uses this information to determine which servers can provide specific types of functionality (tools, resources, prompts) and whether they support real-time updates. In the Python SDK, discovery happens while the client connects. The results are then available on the client object.
+@@ zh
+AI 应用的 MCP 客户端管理器连接到已配置的服务器，并保存发现到的能力以备后用。应用据此判断哪些服务器能提供哪类功能（工具、资源、提示词模板），以及它们是否支持实时更新。在 Python SDK 中，发现在客户端建立连接时就会完成，结果随后可以从客户端对象上读取。
+
+@@ ef62740464
+<Step title="Tool Discovery (Primitives)">
+The client can discover available tools by sending a `tools/list` request. This request is fundamental to MCP's tool discovery mechanism: it allows clients to understand what tools are available on the server before attempting to use them.
+@@ zh
+<Step title="工具发现（原语）">
+客户端可以发送 `tools/list` 请求来发现可用的工具。这个请求是 MCP 工具发现机制的基础：客户端借此在尝试使用工具之前，先了解服务器上有哪些工具可用。
+
+@@ d2f672c577
+#### Understanding the Tool Discovery Request
+@@ zh
+#### 理解工具发现请求
+
+@@ ee221182a0
+The `tools/list` request requires no parameters beyond the standard `_meta` fields that accompany every MCP request. It also accepts an optional `cursor` parameter for [pagination](/specification/2026-07-28/server/utilities/pagination), which the example above omits.
+@@ zh
+除了每个 MCP 请求都附带的标准 `_meta` 字段外，`tools/list` 请求不需要其他参数。它还接受一个可选的 `cursor` 参数用于[分页](/specification/2026-07-28/server/utilities/pagination)，上面的示例省略了这个参数。
+
+@@ 48ee9d17f1
+#### Understanding the Tool Discovery Response
+@@ zh
+#### 理解工具发现响应
+
+@@ e7940b5139
+The response contains a `tools` array that provides comprehensive metadata about each available tool. This array-based structure allows servers to expose multiple tools simultaneously while maintaining clear boundaries between different functionalities.
+@@ zh
+响应中包含一个 `tools` 数组，为每个可用工具提供完整的元数据。这种基于数组的结构让服务器可以同时暴露多个工具，并且不同功能之间的边界清晰。
+
+@@ e5eef98134
+Each tool object in the response includes several key fields:
+@@ zh
+响应中的每个工具对象都包含几个关键字段：
+
+@@ 270b405c24
+- **`name`**: A unique identifier for the tool within the server's namespace. This serves as the primary key for tool execution and should follow a clear naming pattern (e.g., `calculator_arithmetic` rather than just `calculate`)
+- **`title`**: A human-readable display name for the tool that clients can show to users
+- **`description`**: Detailed explanation of what the tool does and when to use it
+- **`inputSchema`**: A JSON Schema that defines the expected input parameters, enabling type validation and providing clear documentation about required and optional parameters
+@@ zh
+- **`name`**：工具在该服务器命名空间内的唯一标识符。它是执行工具时使用的主键，应遵循清晰的命名方式（例如用 `calculator_arithmetic`，而不是简单的 `calculate`）
+- **`title`**：便于人阅读的工具显示名称，客户端可以展示给用户
+- **`description`**：详细说明工具做什么、什么时候该用
+- **`inputSchema`**：定义预期输入参数的 JSON Schema，既可以用于类型校验，也清楚地说明了哪些参数必填、哪些可选
+
+@@ 199be75efc
+The result is marked `"resultType": "complete"` and carries two caching fields. `ttlMs` is a freshness hint in milliseconds, so this tool list can be cached for five minutes. `cacheScope` indicates who may reuse the response. The specification's [caching utility](/specification/2026-07-28/server/utilities/caching) defines the full rules.
+@@ zh
+结果标记为 `"resultType": "complete"`，并带有两个缓存字段。`ttlMs` 是以毫秒为单位的新鲜度提示，表示这份工具列表可以缓存五分钟；`cacheScope` 表示谁可以复用这个响应。完整规则见规范中的[缓存](/specification/2026-07-28/server/utilities/caching)。
+
+@@ d04af03a67
+The AI application fetches available tools from all connected MCP servers and combines them into a unified tool registry that the language model can access. This allows the LLM to understand what actions it can perform and automatically generates the appropriate tool calls during conversations.
+@@ zh
+AI 应用从所有已连接的 MCP 服务器获取可用工具，合并成一个统一的工具注册表，供语言模型访问。这样 LLM 就能知道自己可以执行哪些操作，并在对话中自动生成相应的工具调用。
+
+@@ 5dc7ca9d84
+Clients that federate many servers can use [progressive tool discovery](/docs/2026-07-28/develop/clients/client-best-practices#progressive-tool-discovery) rather than loading every tool upfront.
+@@ zh
+同时接入很多服务器的客户端，可以采用[渐进式工具发现](/docs/2026-07-28/develop/clients/client-best-practices#progressive-tool-discovery)，而不是一开始就加载全部工具。
+
+@@ d8b1ec54f9
+<Step title="Tool Execution (Primitives)">
+The client can now execute a tool using the `tools/call` method. This demonstrates how MCP primitives are used in practice: after discovering available tools, the client can invoke them with appropriate arguments.
+@@ zh
+<Step title="工具执行（原语）">
+现在客户端可以用 `tools/call` 方法执行工具了。这一步演示了 MCP 原语在实践中的用法：发现可用工具之后，客户端就可以带上合适的参数调用它们。
+
+@@ 9accc4323c
+#### Understanding the Tool Execution Request
+@@ zh
+#### 理解工具执行请求
+
+@@ 341ac7bf08
+The `tools/call` request follows a structured format that ensures type safety and clear communication between client and server. Note that we're using the proper tool name from the discovery response (`weather_current`) rather than a simplified name:
+@@ zh
+`tools/call` 请求采用结构化的格式，确保类型安全，也让客户端和服务器之间的通信清晰明确。注意，这里用的是发现响应中给出的正式工具名（`weather_current`），而不是简化的名字：
+
+@@ 882e036cee
+#### Key Elements of Tool Execution
+@@ zh
+#### 工具执行的关键要素
+
+@@ b526e868eb
+The request structure includes several important components:
+@@ zh
+请求结构包括以下几个重要部分：
+
+@@ 6a56dde791
+1. **`name`**: Must match exactly the tool name from the discovery response (`weather_current`). This ensures the server can correctly identify which tool to execute.
+@@ zh
+1. **`name`**：必须与发现响应中的工具名（`weather_current`）完全一致，这样服务器才能准确识别要执行哪个工具。
+
+@@ 35a2d493e4
+2. **`arguments`**: Contains the input parameters as defined by the tool's `inputSchema`. In this example:
+   - `location`: "San Francisco" (required parameter)
+   - `units`: "imperial" (optional parameter, defaults to "metric" if not specified)
+@@ zh
+2. **`arguments`**：包含工具 `inputSchema` 中定义的输入参数。在这个例子中：
+   - `location`："San Francisco"（必填参数）
+   - `units`："imperial"（可选参数，未指定时默认为 "metric"）
+
+@@ b3ffaf6aa3
+3. **`_meta`**: Carries the standard per-request fields: the protocol version and client capabilities that every MCP request must include, plus the client's identity, which clients should include unless configured not to.
+@@ zh
+3. **`_meta`**：携带每个请求的标准字段，即每个 MCP 请求都必须包含的协议版本和客户端能力，以及客户端的身份（除非另有配置，客户端应当附上）。
+
+@@ 8e2ef61c51
+4. **JSON-RPC Structure**: Uses standard JSON-RPC 2.0 format with unique `id` for request-response correlation.
+@@ zh
+4. **JSON-RPC 结构**：使用标准的 JSON-RPC 2.0 格式，用唯一的 `id` 关联请求和响应。
+
+@@ 300ffcc896
+#### Understanding the Tool Execution Response
+@@ zh
+#### 理解工具执行响应
+
+@@ 283123a012
+The response demonstrates MCP's flexible content system:
+@@ zh
+响应展示了 MCP 灵活的内容体系：
+
+@@ 81270babf1
+1. **`content` Array**: Tool responses return an array of content objects, allowing for rich, multi-format responses (text, images, resources, etc.)
+@@ zh
+1. **`content` 数组**：工具响应返回一个内容对象数组，可以包含丰富的多种格式（文本、图片、资源等）
+
+@@ 0bdffa5f51
+2. **Content Types**: Each content object has a `type` field. In this example, `"type": "text"` indicates [text content](/specification/2026-07-28/server/tools#text-content). Tool results can also contain [images](/specification/2026-07-28/server/tools#image-content) (`image`), [audio](/specification/2026-07-28/server/tools#audio-content) (`audio`), [resource links](/specification/2026-07-28/server/tools#resource-links) (`resource_link`), and [embedded resources](/specification/2026-07-28/server/tools#embedded-resources) (`resource`). Not every model accepts all of these types, so clients may need to handle content that their model does not support.
+@@ zh
+2. **内容类型**：每个内容对象都有一个 `type` 字段。在这个例子中，`"type": "text"` 表示[文本内容](/specification/2026-07-28/server/tools#text-content)。工具结果还可以包含[图片](/specification/2026-07-28/server/tools#image-content)（`image`）、[音频](/specification/2026-07-28/server/tools#audio-content)（`audio`）、[资源链接](/specification/2026-07-28/server/tools#resource-links)（`resource_link`）和[嵌入资源](/specification/2026-07-28/server/tools#embedded-resources)（`resource`）。并不是每个模型都支持所有这些类型，因此客户端可能需要处理模型不支持的内容。
+
+@@ a594382b06
+3. **Structured Content** (optional): Tools can also return [structured content](/specification/2026-07-28/server/tools#structured-content), a JSON value in the `structuredContent` field of the result. The tool in this example returns only text.
+@@ zh
+3. **结构化内容**（可选）：工具还可以返回[结构化内容](/specification/2026-07-28/server/tools#structured-content)，即结果中 `structuredContent` 字段里的一个 JSON 值。本例中的工具只返回了文本。
+
+@@ 70f0800b74
+This execution pattern allows AI applications to dynamically invoke server functionality and receive responses that can be integrated into conversations with language models.
+@@ zh
+这种执行模式让 AI 应用可以动态调用服务器的功能，并把收到的响应融入与语言模型的对话中。
+
+@@ 66fd6ed39d
+When the language model decides to use a tool during a conversation, the AI application intercepts the tool call, routes it to the appropriate MCP server, executes it, and returns the results back to the LLM as part of the conversation flow. This enables the LLM to access real-time data and perform actions in the external world.
+@@ zh
+当语言模型在对话中决定使用某个工具时，AI 应用会拦截这次工具调用，把它路由到相应的 MCP 服务器并执行，再把结果作为对话的一部分返回给 LLM。这样 LLM 就能获取实时数据，并在外部世界中执行操作。
+
+@@ d99fc65ca3
+<Step title="Real-time Updates (Notifications)">
+MCP supports real-time notifications that enable servers to inform clients about changes without being polled for them. This demonstrates the notification system, a key feature that keeps clients synchronized and responsive.
+@@ zh
+<Step title="实时更新（通知）">
+MCP 支持实时通知，服务器无需等待客户端轮询，就能主动告知变化。这一步演示通知系统，它是让客户端保持同步、及时响应的关键功能。
+
+@@ 1a91e8a251
+#### Subscribing to Changes
+@@ zh
+#### 订阅变更
+
+@@ 4abc74c0b6
+Change notifications are opt-in. To receive them, the client opens a long-lived notification stream by sending a [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) request with a `notifications` filter naming the event types it wants. Here the client asks for tool list changes:
+@@ zh
+变更通知需要主动订阅。要接收通知，客户端发送一个 [`subscriptions/listen`](/specification/2026-07-28/basic/patterns/subscriptions) 请求，打开一个长期存在的通知流，并在 `notifications` 过滤条件中列出想接收的事件类型。这里客户端请求的是工具列表变更：
+
+@@ ddf4aa00ac
+Every client request carries the `io.modelcontextprotocol/protocolVersion` and `io.modelcontextprotocol/clientCapabilities` fields in `_meta`, and normally `io.modelcontextprotocol/clientInfo` as well, so the server can identify the client without relying on connection state.
+@@ zh
+每个客户端请求都在 `_meta` 中携带 `io.modelcontextprotocol/protocolVersion` 和 `io.modelcontextprotocol/clientCapabilities` 字段，通常还带有 `io.modelcontextprotocol/clientInfo`，因此服务器无需依赖连接状态就能识别客户端。
+
+@@ 939a9c030d
+The server acknowledges the subscription with `notifications/subscriptions/acknowledged`, which is the first message carrying that subscription's ID in `_meta` (the server sends no other notification for that subscription before it). Its `notifications` field reflects the subset of the requested filter the server agreed to honor, with unsupported notification types omitted:
+@@ zh
+服务器用 `notifications/subscriptions/acknowledged` 确认订阅。这是第一条在 `_meta` 中携带该订阅 ID 的消息（在它之前，服务器不会为这个订阅发送任何其他通知）。其中的 `notifications` 字段反映服务器同意响应的那部分过滤条件，不支持的通知类型会被省略：
+
+@@ ed332fc4e9
+#### Understanding Tool List Change Notifications
+@@ zh
+#### 理解工具列表变更通知
+
+@@ 9f00755958
+After the acknowledgment, when the server's available tools change (for example, when new functionality becomes available, existing tools are modified, or tools become temporarily unavailable), the server delivers a notification on that stream:
+@@ zh
+确认之后，每当服务器的可用工具发生变化（例如有新功能可用、现有工具被修改，或某些工具暂时不可用），服务器就会在这个流上推送一条通知：
+
+@@ ed9c02be84
+#### Key Features of MCP Notifications
+@@ zh
+#### MCP 通知的关键特性
+
+@@ 6d47b26ecb
+1. **No Response Required**: Notice there's no `id` field in the notification. This follows JSON-RPC 2.0 notification semantics where no response is expected or sent.
+@@ zh
+1. **无需响应**：注意通知中没有 `id` 字段。这遵循 JSON-RPC 2.0 的通知语义，既不期待也不会发送响应。
+
+@@ 584faa2d80
+2. **Opt-In Based**: This notification is only sent to clients that requested `"toolsListChanged": true` in their `subscriptions/listen` filter, and it is only available from servers that declared `"listChanged": true` in their tools capability (as shown in Step 1).
+@@ zh
+2. **主动订阅**：只有在 `subscriptions/listen` 过滤条件中请求了 `"toolsListChanged": true` 的客户端才会收到这条通知，而且只有在工具能力中声明了 `"listChanged": true` 的服务器才提供它（见第 1 步）。
+
+@@ 6f592b850a
+3. **Subscription-ID Tagging**: Every notification on the stream carries `io.modelcontextprotocol/subscriptionId` in `_meta`. The value is the JSON-RPC ID of the `subscriptions/listen` request that opened the stream (`4` in this example), so clients can correlate each notification with the subscription that produced it.
+@@ zh
+3. **订阅 ID 标记**：流上的每条通知都在 `_meta` 中携带 `io.modelcontextprotocol/subscriptionId`，值为打开这个流的 `subscriptions/listen` 请求的 JSON-RPC ID（本例中为 `4`），这样客户端就能把每条通知与产生它的订阅对应起来。
+
+@@ 8512f4991e
+4. **Event-Driven**: The server decides when to send notifications based on internal state changes, making MCP connections dynamic and responsive.
+@@ zh
+4. **事件驱动**：服务器根据内部状态的变化决定何时发送通知，让 MCP 连接保持动态、响应及时。
+
+@@ 9070619583
+5. **Best Effort**: There are no guarantees that every notification will be sent or received, particularly across transport reconnects. Clients should also rely on polling to preserve freshness of results.
+@@ zh
+5. **尽力而为**：不保证每条通知都会被发送或收到，尤其是在传输重连的时候。客户端还应配合轮询，确保结果是最新的。
+
+@@ 835e4741a2
+#### Client Response to Notifications
+@@ zh
+#### 客户端如何响应通知
+
+@@ e3ba25753a
+Upon receiving this notification, the client typically reacts by requesting the updated tool list. This creates a refresh cycle that keeps the client's understanding of available tools current:
+@@ zh
+收到这条通知后，客户端通常会重新请求工具列表。这形成了一个刷新循环，让客户端对可用工具的了解始终保持最新：
+
+@@ dbd8717581
+#### Why Notifications Matter
+@@ zh
+#### 为什么通知很重要
+
+@@ b1b3e4fdab
+This notification system is crucial for several reasons:
+@@ zh
+这套通知系统之所以重要，有以下几个原因：
+
+@@ 7cfb59b651
+1. **Dynamic Environments**: Tools may come and go based on server state, external dependencies, or user permissions
+2. **Efficiency**: Clients are notified when updates occur, so they can poll less often
+3. **Consistency**: Helps clients keep their view of available server capabilities up to date
+4. **Real-time Collaboration**: Enables responsive AI applications that can adapt to changing contexts
+@@ zh
+1. **动态环境**：工具可能随服务器状态、外部依赖或用户权限的变化而增减
+2. **效率**：有更新时客户端会收到通知，因此可以减少轮询
+3. **一致性**：帮助客户端及时更新对服务器可用能力的认识
+4. **实时协作**：让 AI 应用能够及时响应、适应不断变化的上下文
+
+@@ 978bcd9495
+This notification pattern extends beyond tools to other MCP primitives, enabling comprehensive real-time synchronization between clients and servers.
+@@ zh
+这种通知模式不只适用于工具，也适用于其他 MCP 原语，从而实现客户端与服务器之间全面的实时同步。
+
+@@ ecaa7d60c3
+The AI application keeps a notification stream open for the changes it cares about. When one arrives, it immediately refreshes its tool registry and updates the LLM's available capabilities. This ensures that ongoing conversations always have access to the most current set of tools, and the LLM can dynamically adapt to new functionality as it becomes available.
+@@ zh
+AI 应用为自己关心的变更保持一个打开的通知流。收到通知后，它会立即刷新工具注册表，并更新 LLM 可用的能力。这样进行中的对话总能用上最新的工具集，LLM 也能在新功能可用时动态适应。
+

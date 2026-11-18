@@ -1,0 +1,11 @@
+{
+  "groups": [
+    {
+      "group": "了解 MCP",
+      "pages": [
+        "docs/2026-07-28/learn/architecture",
+        { "original": "docs/2026-07-28/learn/architecture-explained" }
+      ]
+    }
+  ]
+}

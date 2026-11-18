@@ -1,0 +1,155 @@
+---
+title: 架构概览 · 费曼解读
+sidebarTitle: 架构（解读）
+description: 用打比方、拆解和自测的方式，把 MCP 2026-07-28 版的架构讲明白。
+type: docs
+---
+
+<Info>
+  本页是社区编写的**非官方**解读，用费曼学习法重讲[《架构概览》](/zh/docs/2026-07-28/learn/architecture)（译文），对应英文原文是 [Architecture overview](https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture)。解读和配图是二次创作，用词以通俗为先，严谨定义请以原文和[规范](https://modelcontextprotocol.io/specification/2026-07-28)为准。
+</Info>
+
+费曼学习法的意思是：**能用大白话讲给外行听，才算真懂**。本页分三步：先打一个比方，再按原文的结构逐块拆开，最后留几道自测题。
+
+## 一句话版
+
+**MCP 就是“AI 应用怎么跟外部工具和数据说话”的一套统一规矩。** 它只管上下文怎么交换，不管 AI 拿到上下文后怎么用、用哪个大模型。
+
+## 打个比方：老板、助理和供应商
+
+想象你是老板，雇了一个**私人助理**：
+
+- **宿主（Host）= 助理本人**：Claude Code、VS Code 这类 AI 应用。
+- **服务器（Server）= 各家供应商**：文件柜、数据库、Sentry 报警系统……每家能提供的东西不一样。
+- **客户端（Client）= 助理给每家供应商配的专属对接人。** 关键规则是**一个供应商配一个对接人**：助理要连 3 家，就开 3 个客户端，互不混用。
+
+<a href="/zh/images/architecture/participants.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/architecture/participants.light.svg" alt="MCP 的三个角色：宿主内有四个客户端，分别通过专线连接本地的服务器 A、B 和远程的服务器 C" /></a>
+<a href="/zh/images/architecture/participants.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/architecture/participants.svg" alt="MCP 的三个角色：宿主内有四个客户端，分别通过专线连接本地的服务器 A、B 和远程的服务器 C" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+供应商分两种：
+
+- **本地的**：就在你电脑上跑，通过 stdio（标准输入输出）说话，通常只服务一个客户端。
+- **远程的**：跑在别人的平台上，通过 Streamable HTTP 说话，同时服务很多客户端。
+
+注意，“服务器”指的是**提供上下文的那个程序**，跟它在哪台机器上跑无关。
+
+## 两层：信里写什么，怎么寄信
+
+MCP 分两层，像寄信：
+
+| 层 | 比喻 | 管什么 |
+|---|---|---|
+| **数据层**（里层） | 信纸上写什么 | 用 JSON-RPC 2.0 定义消息：发现、工具、资源、提示词模板、征询、通知…… |
+| **传输层**（外层） | 走哪条邮路 | stdio 或 Streamable HTTP，负责建立连接、消息分帧和认证（推荐 OAuth） |
+
+<a href="/zh/images/architecture/layers.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/architecture/layers.light.svg" alt="两层结构：外层传输层包含 stdio 和 Streamable HTTP，内层数据层包含发现、服务器功能、客户端功能和实用功能" /></a>
+<a href="/zh/images/architecture/layers.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/architecture/layers.svg" alt="两层结构：外层传输层包含 stdio 和 Streamable HTTP，内层数据层包含发现、服务器功能、客户端功能和实用功能" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+好处是**同一封信，走哪条邮路内容都一样**。邮路通常由 SDK 处理好，开发者主要和数据层打交道。
+
+## 这一版最大的变化：无状态
+
+以前（2025 年那一代）像**打电话**：先握手寒暄（`initialize`），对方记住你是谁，后面的话才能接着说。
+
+2026-07-28 版像**寄挂号信**：每封信都自带全部身份信息。每个请求的 `_meta` 里都附上三样东西：
+
+1. **说哪个版本**：`io.modelcontextprotocol/protocolVersion`
+2. **我能处理什么**：`io.modelcontextprotocol/clientCapabilities`，比如“我能帮你问用户”
+3. **我是谁**：`io.modelcontextprotocol/clientInfo`（建议带上）
+
+所以服务器**不用记住任何前情**，每个请求都能单独处理。对远程服务器来说，这意味着可以随意扩容：任何一台机器接到信都能回。
+
+那怎么知道对方会什么？发一个 **`server/discover`**：“你会什么？”。每个服务器都必须实现它，但客户端**不一定要先问**，也可以直接发请求，版本不对时对方会报错，换个版本重试就行。它的回答还能缓存：`ttlMs` 是缓存多久（原文例子是 1 小时），`cacheScope: "public"` 表示谁都可以复用。
+
+<Tip>
+  想直观对比两代协议？打开 [MCP 图解](https://flinshu.github.io/mcp-explained/#lifecycle)，把顶部时间线从“25年11月”拨到“26年7月”：握手消失了，换成 `server/discover` 和每个请求自带的 `_meta`。
+</Tip>
+
+## 原语：双方能互相提供什么
+
+原文说这是 MCP 最重要的概念。
+
+<a href="/zh/images/architecture/primitives.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/architecture/primitives.light.svg" alt="原语：服务器提供工具、资源、提示词模板，客户端提供征询；下方列出 2026-07-28 弃用的根目录、采样和日志" /></a>
+<a href="/zh/images/architecture/primitives.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/architecture/primitives.svg" alt="原语：服务器提供工具、资源、提示词模板，客户端提供征询；下方列出 2026-07-28 弃用的根目录、采样和日志" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+**服务器提供三样**，套路都是先 `*/list` 列出来，再取用或执行：
+
+| 原语 | 一句话 | 比喻 | 方法 |
+|---|---|---|---|
+| **工具** | 能执行的函数 | 供应商帮你**办事** | `tools/list` → `tools/call` |
+| **资源** | 能读的数据 | 供应商给你**资料** | `resources/list` → `resources/read` |
+| **提示词模板** | 可复用的话术 | 供应商给你**标准说辞** | `prompts/list` → `prompts/get` |
+
+原文的例子：一个数据库服务器可以同时提供“查询”工具、“表结构”资源，以及一个示范怎么用查询工具的提示词模板。因为每次都现查，清单可以随时变化。
+
+**客户端提供一样：征询（elicitation）**，也就是服务器反过来问用户：“确定要删吗？”“部署到哪个环境？”。
+
+这里有个精妙之处：既然是无状态的，**服务器不能主动给客户端发请求**。它在回复里说“我还缺信息”（`input_required`），客户端问完用户后，**带着答案把原请求再发一遍**。这叫多轮往返（Multi Round-Trip Requests）。
+
+**这一版弃用了三样**（新实现请改用替代方案）：
+
+- **根目录（roots）**：改为通过工具参数、资源 URI 或服务器配置来传目录或文件。
+- **采样（sampling）**：服务器自己直接调大模型 API，协议不再提供替代。
+- **日志（logging）**：stdio 服务器写到 stderr，或者用 OpenTelemetry。
+
+另外还有可选的**扩展**。比如 Tasks 扩展：长任务先返回一个“取件号”，客户端稍后凭号查进度、取结果。
+
+## 通知：订阅制
+
+服务器的工具清单变了，怎么告诉客户端？2026-07-28 版改成了**先订阅，再推送**：
+
+1. 客户端发 `subscriptions/listen`，说明“我只想听工具清单的变化”（`toolsListChanged: true`）。
+2. 服务器回一条确认 `notifications/subscriptions/acknowledged`，里面列出它**答应**推送的类型（不支持的会被去掉）。
+3. 之后清单一变，服务器就在这条流上推 `notifications/tools/list_changed`。
+
+三个要点：**通知没有 `id`**，因为不需要回复；每条通知都带 `subscriptionId`，值就是当初那个订阅请求的 id；通知是**尽力而为**的，断线重连时可能丢，所以客户端最好也偶尔主动刷新一下。
+
+## 把整个流程串起来
+
+原文用一个天气服务器把上面所有概念走了一遍：
+
+<a href="/zh/images/architecture/sequence.light.svg" target="_blank" className="block dark:hidden"><img src="/zh/images/architecture/sequence.light.svg" alt="时序图：发现、列工具、调用、订阅变化四个阶段的消息流" /></a>
+<a href="/zh/images/architecture/sequence.svg" target="_blank" className="hidden dark:block"><img src="/zh/images/architecture/sequence.svg" alt="时序图：发现、列工具、调用、订阅变化四个阶段的消息流" /></a>
+<p className="text-center text-sm opacity-70">点击图片在新标签页查看大图</p>
+
+1. **发现**：`server/discover`，服务器回答“我支持 2026-07-28，有工具（清单会变）和资源”。
+2. **列工具**：`tools/list` 返回计算器和天气两个工具，各带 `name`、`title`、`description` 和 `inputSchema`。宿主把所有服务器的工具汇总起来交给模型。
+3. **调用**：模型决定查天气，宿主找到负责这个工具的客户端，发出 `tools/call`，参数是 `{location: "San Francisco", units: "imperial"}`。结果放在 `content` 里，宿主再交还给模型。
+4. **订阅变化**：`subscriptions/listen`，之后工具清单一变就会收到通知，客户端再重新列一次工具。
+
+图里紫色虚线是**宿主内部**的动作（比如把工具交给模型），它们不属于 MCP 协议本身。原文开头就强调过：MCP 只管上下文怎么交换，不管 AI 应用怎么用大模型。
+
+## 费曼自测
+
+能用自己的话答出来，才算真懂。先想一想，再展开看参考答案。
+
+<AccordionGroup>
+  <Accordion title="1. 为什么一个服务器要配一个专门的客户端？">
+    每条连接都是独立的专线，各自协商的能力、状态和认证互不干扰。宿主连几个服务器，就开几个客户端。
+  </Accordion>
+  <Accordion title="2. “无状态”具体指什么？换来了什么好处？">
+    每个请求都在 `_meta` 里自带协议版本、客户端能力和身份，服务器不需要记住之前发生过什么。好处是远程服务器可以随意扩容，任何一台机器都能处理任何一个请求。
+  </Accordion>
+  <Accordion title="3. 不先调 server/discover 行不行？">
+    行。直接发请求就可以，版本不对时会收到 `UnsupportedProtocolVersionError`，里面列出服务器支持的版本，换一个重试即可。`server/discover` 只是一次拿全身份、能力和版本的便捷方式。
+  </Accordion>
+  <Accordion title="4. 工具、资源、提示词模板，分别由谁决定什么时候用？">
+    工具由模型决定调不调；资源通常由应用或用户决定附加哪些；提示词模板通常由用户挑选，比如通过斜杠命令。
+  </Accordion>
+  <Accordion title="5. 服务器想问用户一个问题，在无状态的前提下怎么做到？">
+    服务器回复 `input_required`，客户端去问用户，然后带着答案重新发送原请求。这就是多轮往返（MRTR）。
+  </Accordion>
+  <Accordion title="6. 通知为什么没有 id？为什么不能百分之百依赖它？">
+    没有 `id` 是因为通知不需要回复（这是 JSON-RPC 的约定）。不能完全依赖，是因为它是尽力而为的，断线时可能丢失，所以客户端还应该偶尔主动刷新。
+  </Accordion>
+</AccordionGroup>
+
+## 动手看一看
+
+读懂之后，最好亲眼看看真实的消息：
+
+- [MCP 图解](https://flinshu.github.io/mcp-explained/)：动画演示每一条消息，可以切换规范版本对比。
+- [MCP Inspector 实战](https://flinshu.github.io/mcp-explained/inspector.html)：用官方调试工具连上真实服务器，看 `tools/call`、进度通知和征询表单。注意，示例服务器默认协商的是 2025-11-25 版，所以你会看到 `initialize` 握手，可以和本页讲的 2026-07-28 版对照着看。

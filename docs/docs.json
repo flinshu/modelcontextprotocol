@@ -942,6 +942,18 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "中文（非官方）",
+        "pages": [
+          {
+            "group": "了解 MCP",
+            "pages": [
+              "zh/docs/2026-07-28/learn/architecture",
+              "zh/docs/2026-07-28/learn/architecture-explained"
+            ]
+          }
+        ]
       }
     ]
   },
